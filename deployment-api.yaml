@@ -15,7 +15,7 @@ spec:
     spec:
       containers:
         - name: kube-ms1
-          image: ion21/kube-ms1:v3
+          image: mycodeschool/kube-ms1:v3
           env:
             - name: SPRING_PROFILES_ACTIVE
               value: "kubernetes"

@@ -16,7 +16,7 @@ spec:
     spec:
       containers:
         - name: react-container
-          image: ion21/kube-client:v4
+          image: mycodeschool/kube-client:v4
           ports:
             - containerPort: 3000
           volumeMounts:
