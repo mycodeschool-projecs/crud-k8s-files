@@ -15,7 +15,7 @@ spec:
     spec:
       containers:
         - name: kube-ms1
-          image: mycodeschool/crud-command-api:07.03.2025.07.54.52
+          image: mycodeschool/crud-command-api:07.03.2025.17.59.59
           env:
             - name: SPRING_PROFILES_ACTIVE
               value: "kubernetes"
