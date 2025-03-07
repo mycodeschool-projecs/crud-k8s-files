@@ -16,7 +16,7 @@ spec:
     spec:
       containers:
         - name: react-container
-          image: mycodeschool/kube-client:07.03.2025.08.04.40
+          image: mycodeschool/crud-client-api:07.03.2025.08.04.40
           ports:
             - containerPort: 3000
           volumeMounts:
