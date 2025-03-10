@@ -9,5 +9,5 @@ data:
   DB_USER: "testuser"
   config.json: |
     {
-      "BASE_URL": "http://react-app.local"
+      "BASE_URL": "https://react-app.local"
     }
