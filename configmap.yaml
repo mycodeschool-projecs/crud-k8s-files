@@ -9,5 +9,5 @@ data:
   DB_USER: "testuser"
   config.json: |
     {
-      "BASE_URL": "http://3.77.31.35"
+      "BASE_URL": "http://127.0.0.1"
     }
