@@ -16,13 +16,13 @@ spec:
     spec:
       containers:
         - name: react-container
-          image: mycodeschool/crud-client-api:16.03.2025.08.10.52
+          image: mycodeschool/crud-client-api:16.03.2025.08.35.19
           ports:
             - containerPort: 3000
           volumeMounts:
             - name: app-config-volume
-              mountPath: /app/build/config
-              readOnly: true
+              mountPath: /app/build/config/config.json
+              subPath: config.json
       volumes:
         - name: app-config-volume
           configMap:
