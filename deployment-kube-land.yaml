@@ -15,7 +15,7 @@ spec:
     spec:
       containers:
         - name: kube-land
-          image: mycodeschool/crud-auth-api:24.03.2025.21.52.04
+          image: mycodeschool/crud-auth-api:25.03.2025.12.06.04
           env:
             - name: SPRING_PROFILES_ACTIVE
               value: "kubernetes"
