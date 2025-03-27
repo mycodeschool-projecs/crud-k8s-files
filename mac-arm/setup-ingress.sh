@@ -18,8 +18,3 @@ kubectl wait --namespace ingress-nginx \
   --timeout=180s
 
 echo "✅ Ingress controller is ready!"
-
-# Optional: Port forward if you want to test locally
-# echo "📡 Forwarding port 8080 -> ingress controller service..."
-# kubectl port-forward -n ingress-nginx service/ingress-nginx-controller 8080:80
-
