@@ -9,9 +9,5 @@ data:
   DB_USER: "testuser"
   config.json: |
     {
-<<<<<<< HEAD:configmap.yaml
-      "BASE_URL": "http://react-app.local"
-=======
       "BASE_URL": "http://localhost"
->>>>>>> feat/implement-elk-refactor:configs.yaml
     }
