@@ -6,14 +6,11 @@ spec:
   backoffLimit: 0      # Retry only once if it fails
   template:
     spec:
-      # Run only one Pod for the job
       restartPolicy: Never
       containers:
         - name: elk-setup
           image: docker.elastic.co/elasticsearch/elasticsearch:8.12.1
           imagePullPolicy: IfNotPresent
-
-          # Inject the elastic and kibana passwords from your "elk-secrets" secret
           env:
             - name: ELASTIC_PASSWORD
               valueFrom:
@@ -26,25 +23,24 @@ spec:
                   name: elk-secrets
                   key: kibana_password
 
-          command: [ "bash", "-c" ]
+          # ⬇️ switch from bash to sh
+          command: ["sh", "-c"]
           args:
             - |
               echo "Waiting for Elasticsearch availability";
-              # Wait for the string 'missing authentication credentials'
-              # to confirm ES is up but unauthenticated:
               until curl -s http://elasticsearch:9200 | grep -q "missing authentication credentials"; do
                 echo "Elasticsearch not ready, sleeping 10s..."
                 sleep 10
-              done;
-              
+              done
+
               echo "Setting kibana_system password";
-              # Use "elastic" superuser's password to set kibana_system's password:
               until curl -s -X POST -u "elastic:${ELASTIC_PASSWORD}" \
                     -H "Content-Type: application/json" \
+                    -d "{\"password\":\"${KIBANA_PASSWORD}\"}" \
                     http://elasticsearch:9200/_security/user/kibana_system/_password \
-                    -d "{\"password\":\"${KIBANA_PASSWORD}\"}" | grep -q "^{}"; do
+                    | grep -q "^{}"; do
                 echo "Retrying in 10s..."
                 sleep 10
-              done;
-              
+              done
+
               echo "All done! Kibana should now authenticate with the 'kibana_system' user."
