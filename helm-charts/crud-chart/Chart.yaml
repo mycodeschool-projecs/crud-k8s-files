@@ -1,5 +1,0 @@
-apiVersion: v2
-name: crud-chart
-version: 0.1.0
-description: Helm chart for CRUD application stack
-appVersion: "1.0"
