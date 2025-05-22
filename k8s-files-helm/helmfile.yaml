@@ -34,3 +34,7 @@ releases:
   - name: zipkin
     namespace: default
     chart: ./charts/zipkin
+    
+  - name: prometheus
+    namespace: default
+    chart: ./charts/prometheus
