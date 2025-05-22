@@ -1,8 +1,6 @@
 helmDefaults:
   atomic: true
   wait: true
-
-releases:
   - name: infra
     namespace: default
     chart: ./charts/infra
