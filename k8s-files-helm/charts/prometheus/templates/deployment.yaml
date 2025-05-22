@@ -1,5 +1,5 @@
 apiVersion: apps/v1
-kind: StatefulSet
+kind: Deployment
 metadata:
   name: {{ .Values.appName }}
   namespace: default
@@ -15,9 +15,12 @@ spec:
     spec:
       containers:
         - name: {{ .Values.appName }}
-          image: "{{ .Values.appImage }}:{{.Values.appVersion}}"
+          image: "{{ .Values.appImage }}:{{ .Values.appVersion }}"
+          args:
+            - '--config.file=/etc/prometheus/prometheus.yml'
+            - '--storage.tsdb.path=/prometheus'
           ports:
-            - containerPort: {{.Values.containerPort}}
+            - containerPort: {{ .Values.containerPort }}
           env:
             {{- range .Values.containerEnvVars }}
             - name: {{ .name }}
@@ -30,12 +33,21 @@ spec:
               {{- end }}
             {{- end }}
           volumeMounts:
-            - name: mysql-storage
-              mountPath: /var/lib/mysql
+            - name: prometheus-config
+              mountPath: /etc/prometheus
+              readOnly: true
+            - name: prometheus-data
+              mountPath: /prometheus
       volumes:
-        - name: mysql-storage
+        - name: prometheus-config
+          configMap:
+            name: app-config
+            items:
+              - key: prometheus.yml
+                path: prometheus.yml
+        - name: prometheus-data
           persistentVolumeClaim:
-            claimName: mysql-pvc
+            claimName: prometheus-pvc
 ---
 apiVersion: v1
 kind: Service
@@ -43,9 +55,10 @@ metadata:
   name: {{ .Values.appName }}
   namespace: default
 spec:
-  type: ClusterIP
-  ports:
-    - port:  {{.Values.containerPort}}
-      targetPort:  {{.Values.containerTargetPort}}
   selector:
     app: {{ .Values.appName }}
+  ports:
+    - name: http
+      port: {{ .Values.containerPort }}
+      targetPort: {{ .Values.containerTargetPort }}
+  type: ClusterIP

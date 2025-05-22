@@ -1,0 +1,6 @@
+apiVersion: v2
+name: prometheus
+description: Deployment chart for prometheus
+version: 0.1.0
+type: application
+appVersion: "latest"

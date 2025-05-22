@@ -1,0 +1,7 @@
+appName: prometheus
+appReplicas: 1
+appImage: prom/prometheus
+appVersion: latest
+containerPort: 9090
+containerTargetPort: 9090
+containerEnvVars: []
