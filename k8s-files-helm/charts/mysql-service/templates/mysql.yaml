@@ -19,10 +19,16 @@ spec:
           ports:
             - containerPort: {{.Values.containerPort}}
           env:
-            {{-range  .Values.containerEnvVars}}
-            - name: {{ .key   }}
-            - value: {{ .value | quote}}
-            {{-end}}
+            {{- range .Values.containerEnvVars }}
+            - name: {{ .name }}
+              {{- if hasKey . "value" }}
+              value: {{ .value | quote }}
+              {{- end }}
+              {{- if hasKey . "valueFrom" }}
+              valueFrom:
+{{ toYaml .valueFrom | nindent 14 }}
+              {{- end }}
+            {{- end }}
           volumeMounts:
             - name: mysql-storage
               mountPath: /var/lib/mysql
