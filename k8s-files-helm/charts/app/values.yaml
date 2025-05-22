@@ -1,0 +1,9 @@
+appName:
+appReplicas:
+appImage:
+appVersion:
+containerPort:
+containerTargetPort:
+containerEnvVars:
+containerTransporterPort:
+containerTransporterTargetPort:

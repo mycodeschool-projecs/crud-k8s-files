@@ -1,0 +1,57 @@
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: {{ .Values.appName }}
+spec:
+  replicas: {{ .Values.appReplicas }}
+  selector:
+    matchLabels:
+      app: {{ .Values.appName }}
+  template:
+    metadata:
+      labels:
+        app: {{ .Values.appName }}
+    spec:
+      initContainers:
+        - name: configure-elasticsearch
+          image: "{{ .Values.appImage }}:{{.Values.appVersion}}"
+          command: [ 'sh', '-c', 'bin/elasticsearch-keystore create && echo "${ELASTIC_PASSWORD}" | bin/elasticsearch-keystore add -x bootstrap.password' ]
+          volumeMounts:
+            - name: es-data
+              mountPath: /usr/share/elasticsearch/data
+          env:
+            - name: ELASTIC_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: elk-secrets
+                  key: elastic_password
+      containers:
+        - name: {{ .Values.appName }}
+          image: "{{ .Values.appImage }}:{{.Values.appVersion}}"
+          ports:
+            - name: http
+              containerPort: {{.Values.containerPort}}
+            - name: transport
+              containerPort: {{.Values.containerTransporterPort}}
+          env:
+            {{-range  .Values.containerEnvVars}}
+            - name: {{ .key   }}
+            - value: {{ .value | quote}}
+            {{-end}}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ .Values.appName }}
+  namespace: default
+spec:
+  type: ClusterIP
+  ports:
+    - name: http
+      port: {{.Values.containerPort}}
+      targetPort: {{.Values.containerTargetPort}}
+    - name: transport
+      port: {{.Values.containerTransporterPort}}
+      targetPort: {{.Values.containerTransporterTargetPort}}
+  selector:
+    app: {{ .Values.appName }}

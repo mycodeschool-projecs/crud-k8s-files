@@ -1,0 +1,6 @@
+appName: zipkin
+appReplicas: 1
+appImage: openzipkin/zipkin
+appVersion:
+containerPort: 9411
+containerTargetPort: 9411
