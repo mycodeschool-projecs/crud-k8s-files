@@ -1,0 +1,29 @@
+appName:  logstash
+appReplicas: 1
+appImage: docker.elastic.co/logstash/logstash
+appVersion: 8.12.1
+containerPort: 3100
+containerTargetPort: 3100
+containerEnvVars:
+  - name: ELASTIC_PASSWORD
+    valueFrom:
+      secretKeyRef:
+        name: elk-secrets
+        key: elastic_password
+  - name: CONFIG_STRING
+    value: |
+      input {
+        tcp {
+          port => 3100
+          codec => json_lines
+        }
+      }
+      output {
+        elasticsearch {
+          hosts => ["http://elasticsearch:9200"]
+          user => "elastic"
+          password => "${ELASTIC_PASSWORD}"
+          ssl => false
+          index => "kube-logs"
+        }
+      }

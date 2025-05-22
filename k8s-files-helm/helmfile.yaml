@@ -1,0 +1,37 @@
+helmDefaults:
+  atomic: true
+  wait: true
+
+releases:
+  - name: infra
+    namespace: default
+    chart: ./charts/infra
+
+  - name: kube-ms1
+    namespace: default
+    chart: ./charts/command-service
+
+  - name: kube-land
+    namespace: default
+    chart: ./charts/auth-service
+
+  - name: mysql-service
+    namespace: default
+    chart: ./charts/mysql-service
+
+  - name: elasticsearch
+    namespace: default
+    chart: ./charts/elasticsearch
+
+  - name: logstash
+    namespace: default
+    chart: ./charts/logstash
+
+  - name: kibana
+    namespace: default
+    chart: ./charts/kibana
+
+  - name: zipkin
+    namespace: default
+    chart: ./charts/zipkin
+
