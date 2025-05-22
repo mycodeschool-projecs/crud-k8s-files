@@ -1,47 +1,35 @@
 helmDefaults:
   atomic: true
   wait: true
+  - name: infra
+    namespace: default
+    chart: ./charts/infra
 
-releases:
   - name: kube-ms1
     namespace: default
-    chart: ./charts/app
-    values:
-      - values/command-service.yaml
+    chart: ./charts/command-service
 
   - name: kube-land
     namespace: default
-    chart: ./charts/app
-    values:
-      - values/auth-service.yaml
+    chart: ./charts/auth-service
 
   - name: mysql-service
     namespace: default
-    chart: ./charts/app
-    values:
-      - values/mysql-service.yaml
+    chart: ./charts/mysql-service
 
   - name: elasticsearch
     namespace: default
-    chart: ./charts/app
-    values:
-      - values/elasticsearch-service.yaml
+    chart: ./charts/elasticsearch
 
   - name: logstash
     namespace: default
-    chart: ./charts/app
-    values:
-      - values/logstash-service.yaml
+    chart: ./charts/logstash
 
   - name: kibana
     namespace: default
-    chart: ./charts/app
-    values:
-      - values/kibana-service.yaml
+    chart: ./charts/kibana
 
   - name: zipkin
     namespace: default
-    chart: ./charts/app
-    values:
-      - values/zipkin-service.yaml
+    chart: ./charts/zipkin
 

@@ -1,0 +1,27 @@
+appName: mysql-service
+appReplicas: 1
+appImage: mysql
+appVersion: 8.0
+containerPort: 3306
+containerTargetPort: 3306
+containerEnvVars:
+  - name: MYSQL_ROOT_PASSWORD
+    valueFrom:
+      secretKeyRef:
+        name: db-credentials
+        key: DB_PASSWORD
+  - name: MYSQL_DATABASE
+    valueFrom:
+      configMapKeyRef:
+        name: app-config
+        key: DB_NAME
+  - name: MYSQL_USER
+    valueFrom:
+      configMapKeyRef:
+        name: app-config
+        key: DB_USER
+  - name: MYSQL_PASSWORD
+    valueFrom:
+      secretKeyRef:
+        name: db-credentials
+        key: DB_PASSWORD

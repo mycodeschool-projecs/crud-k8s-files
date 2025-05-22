@@ -1,0 +1,35 @@
+appName: elasticsearch
+appReplicas: 1
+appImage: docker.elastic.co/elasticsearch/elasticsearch
+appVersion: 8.12.1
+
+containerPort: 9200
+containerTargetPort: 9200
+containerTransporterPort: 9300
+containerTransporterTargetPort: 9300
+
+containerEnvVars:
+  # --- credentials ---
+  - name: ELASTIC_PASSWORD
+    valueFrom:
+      secretKeyRef:
+        name: elk-secrets
+        key: elastic_password
+
+  # --- single-node cluster ---
+  - name: discovery.type
+    value: single-node
+
+  # --- security ---
+  - name: xpack.security.enabled
+    value: "true"
+  - name: xpack.security.http.ssl.enabled
+    value: "false"
+
+  # --- cluster metadata ---
+  - name: cluster.name
+    value: "elasticsearch"
+
+  # --- JVM memory ---
+  - name: ES_JAVA_OPTS
+    value: "-Xms1g -Xmx1g"
