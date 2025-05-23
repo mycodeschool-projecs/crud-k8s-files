@@ -28,6 +28,10 @@ By default all charts install into the `default` namespace and use the `local-pa
 helmfile -e myenv sync
 ```
 
+## Performance
+
+All charts now request more CPU and memory by default (200m CPU / 256Mi memory). Limits are set to 400m CPU / 512Mi memory, and Elasticsearch uses 1Gi memory. Container images use `IfNotPresent` pull policy to avoid unnecessary downloads. Override these values in each chart if your cluster has different resource requirements.
+
 ## Charts
 
 See the `charts/` directory for individual chart values.
