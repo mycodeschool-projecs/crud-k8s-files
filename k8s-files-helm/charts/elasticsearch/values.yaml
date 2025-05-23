@@ -13,7 +13,7 @@ containerEnvVars:
   - name: ELASTIC_PASSWORD
     valueFrom:
       secretKeyRef:
-        name: elk-secrets
+        name: elastic-credentials
         key: elastic_password
 
   # --- single-node cluster ---

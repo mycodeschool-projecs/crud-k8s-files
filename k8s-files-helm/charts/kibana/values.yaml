@@ -18,7 +18,7 @@ containerEnvVars:
   - name: ELASTICSEARCH_PASSWORD
     valueFrom:
       secretKeyRef:
-        name: elk-secrets
+        name: kibana-credentials
         key: kibana_password
   - name: TELEMETRY_ENABLED
     value: "false"
