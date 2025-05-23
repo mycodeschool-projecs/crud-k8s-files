@@ -20,11 +20,6 @@ spec:
           envFrom:
 {{ toYaml .Values.containerEnvFrom | indent 12 }}
           {{- end }}
-          env:
-            {{- range .Values.containerEnvVars }}
-            - name: {{ .name }}
-              value: {{ .value | quote }}
-            {{- end }}
           ports:
             - containerPort: {{ .Values.containerPort }}
           resources:

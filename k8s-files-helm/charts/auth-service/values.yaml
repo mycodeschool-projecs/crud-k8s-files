@@ -4,10 +4,10 @@ appImage: mycodeschool/crud-auth-api
 appVersion: 29.03.2025.16.35.52
 containerPort: 8082
 containerTargetPort: 8082
-containerEnvVars:
-  - name: SPRING_PROFILES_ACTIVE
-    value: "kubernetes"
-containerEnvFrom: []
+containerEnvVars: []
+containerEnvFrom:
+  - configMapRef:
+      name: auth-service-env
 namespace: default
 storageClass: local-path
 resources:

@@ -4,10 +4,10 @@ appImage: mycodeschool/crud-command-api
 appVersion: 29.03.2025.16.35.20
 containerPort: 8081
 containerTargetPort: 8081
-containerEnvVars:
-  - name: SPRING_PROFILES_ACTIVE
-    value: "kubernetes"
-containerEnvFrom: []
+containerEnvVars: []
+containerEnvFrom:
+  - configMapRef:
+      name: command-service-env
 namespace: default
 storageClass: local-path
 resources:
