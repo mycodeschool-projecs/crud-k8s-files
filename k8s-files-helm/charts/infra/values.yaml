@@ -2,6 +2,6 @@ appName: infra
 appReplicas: 1
 appImage: nginx
 appVersion: latest
-containerPort: 80
-containerTargetPort: 80
+containerPort: 7651
+containerTargetPort: 7561
 containerEnvVars: []
