@@ -60,3 +60,12 @@ Create the name of the service account to use
 {{- default "default" .Values.serviceAccount.name }}
 {{- end }}
 {{- end }}
+
+{{/*
+Common metadata block for resources*/}}
+{{- define "app.metadata" -}}
+name: {{ .Values.appName }}
+namespace: {{ .Values.namespace }}
+labels:
+{{ include "app.labels" . | indent 2 }}
+{{- end }}

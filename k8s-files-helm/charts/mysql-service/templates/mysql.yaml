@@ -2,7 +2,7 @@ apiVersion: apps/v1
 kind: StatefulSet
 metadata:
   name: {{ .Values.appName }}
-  namespace: default
+  namespace: {{ .Values.namespace }}
 spec:
   serviceName: {{ .Values.appName }}
   replicas: {{ .Values.appReplicas }}
@@ -19,6 +19,18 @@ spec:
           image: "{{ .Values.appImage }}:{{.Values.appVersion}}"
           ports:
             - containerPort: {{.Values.containerPort}}
+          resources:
+{{ toYaml .Values.resources | indent 12 }}
+          readinessProbe:
+            tcpSocket:
+              port: {{ .Values.containerPort }}
+            initialDelaySeconds: {{ .Values.readiness.initialDelaySeconds }}
+            periodSeconds: {{ .Values.readiness.periodSeconds }}
+          livenessProbe:
+            tcpSocket:
+              port: {{ .Values.containerPort }}
+            initialDelaySeconds: {{ .Values.liveness.initialDelaySeconds }}
+            periodSeconds: {{ .Values.liveness.periodSeconds }}
           env:
             {{- range .Values.containerEnvVars }}
             - name: {{ .name }}
@@ -42,7 +54,7 @@ apiVersion: v1
 kind: Service
 metadata:
   name: {{ .Values.appName }}
-  namespace: default
+  namespace: {{ .Values.namespace }}
 spec:
   type: ClusterIP
   ports:

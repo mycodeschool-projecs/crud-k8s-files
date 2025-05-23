@@ -1,22 +1,36 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: {{ .Values.appName }}
+{{ include "app.metadata" . | indent 2 }}
 spec:
   replicas: {{ .Values.appReplicas }}
   selector:
     matchLabels:
-      app: {{ .Values.appName }}
+{{ include "app.selectorLabels" . | indent 6 }}
   template:
     metadata:
       labels:
-        app: {{ .Values.appName }}
+{{ include "app.selectorLabels" . | indent 8 }}
     spec:
       containers:
         - name: {{ .Values.appName }}
           image: "{{ .Values.appImage }}:{{.Values.appVersion}}"
           ports:
             - containerPort: {{.Values.containerPort}}
+          resources:
+{{ toYaml .Values.resources | indent 12 }}
+          readinessProbe:
+            httpGet:
+              path: {{ .Values.readiness.path }}
+              port: {{ .Values.containerPort }}
+            initialDelaySeconds: {{ .Values.readiness.initialDelaySeconds }}
+            periodSeconds: {{ .Values.readiness.periodSeconds }}
+          livenessProbe:
+            httpGet:
+              path: {{ .Values.liveness.path }}
+              port: {{ .Values.containerPort }}
+            initialDelaySeconds: {{ .Values.liveness.initialDelaySeconds }}
+            periodSeconds: {{ .Values.liveness.periodSeconds }}
           env:
             {{- range .Values.containerEnvVars }}
             - name: {{ .name }}
@@ -32,12 +46,11 @@ spec:
 apiVersion: v1
 kind: Service
 metadata:
-  name: {{ .Values.appName }}
-  namespace: default
+{{ include "app.metadata" . | indent 2 }}
 spec:
   type: ClusterIP
   ports:
     - port:  {{.Values.containerPort}}
       targetPort:  {{.Values.containerTargetPort}}
   selector:
-    app: {{ .Values.appName }}
+{{ include "app.selectorLabels" . | indent 4 }}
