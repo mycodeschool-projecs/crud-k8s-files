@@ -3,4 +3,4 @@
 {{/*metadata:*/}}
 {{/*  name: local-path*/}}
 {{/*provisioner: rancher.io/local-path*/}}
-{{/*volumeBindingMode: WaitForFirstConsumer*/}}
+{{/*volumeBindingMode: Immediate*/}}

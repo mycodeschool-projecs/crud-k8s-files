@@ -4,6 +4,7 @@ metadata:
   name: {{ .Values.appName }}
   namespace: default
 spec:
+  serviceName: {{ .Values.appName }}
   replicas: {{ .Values.appReplicas }}
   selector:
     matchLabels:
