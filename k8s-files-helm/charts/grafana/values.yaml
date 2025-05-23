@@ -1,0 +1,15 @@
+appName: grafana
+appReplicas: 1
+appImage: grafana/grafana
+appVersion: latest
+containerPort: 3000
+containerTargetPort: 3000
+containerEnvVars:
+  - name: GF_SECURITY_ADMIN_USER
+    value: "admin"
+  - name: GF_SECURITY_ADMIN_PASSWORD
+    value: "admin"
+  - name: GF_SERVER_ROOT_URL
+    value: "http://localhost/grafana/"
+  - name: GF_SERVER_SERVE_FROM_SUB_PATH
+    value: "true"
