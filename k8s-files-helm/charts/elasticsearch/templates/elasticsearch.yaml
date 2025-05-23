@@ -3,6 +3,7 @@ kind: StatefulSet
 metadata:
   name: {{ .Values.appName }}
 spec:
+  serviceName: {{ .Values.appName }}
   replicas: {{ .Values.appReplicas }}
   selector:
     matchLabels:
