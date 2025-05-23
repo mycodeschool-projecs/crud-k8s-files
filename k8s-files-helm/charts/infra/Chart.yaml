@@ -1,6 +1,6 @@
 apiVersion: v2
 name: infra
-description: Shared configuration and ingress
-version: 0.1.0
+description: Shared configuration and ingress with a simple demo Deployment
+version: 0.1.1
 type: application
 appVersion: "1.0"
