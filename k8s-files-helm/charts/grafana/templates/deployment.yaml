@@ -2,7 +2,7 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: {{ .Values.appName }}
-  namespace: default
+  namespace: {{ .Values.namespace }}
 spec:
   replicas: {{ .Values.appReplicas }}
   selector:
@@ -23,6 +23,20 @@ spec:
             {{- end }}
           ports:
             - containerPort: {{ .Values.containerPort }}
+          resources:
+{{ toYaml .Values.resources | indent 12 }}
+          readinessProbe:
+            httpGet:
+              path: {{ .Values.readiness.path }}
+              port: {{ .Values.containerPort }}
+            initialDelaySeconds: {{ .Values.readiness.initialDelaySeconds }}
+            periodSeconds: {{ .Values.readiness.periodSeconds }}
+          livenessProbe:
+            httpGet:
+              path: {{ .Values.liveness.path }}
+              port: {{ .Values.containerPort }}
+            initialDelaySeconds: {{ .Values.liveness.initialDelaySeconds }}
+            periodSeconds: {{ .Values.liveness.periodSeconds }}
           volumeMounts:
             - name: grafana-datasources
               mountPath: /etc/grafana/provisioning/datasources
@@ -44,7 +58,7 @@ apiVersion: v1
 kind: Service
 metadata:
   name: {{ .Values.appName }}
-  namespace: default
+  namespace: {{ .Values.namespace }}
 spec:
   selector:
     app: {{ .Values.appName }}

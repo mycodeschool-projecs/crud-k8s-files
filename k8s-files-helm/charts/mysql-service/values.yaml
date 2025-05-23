@@ -25,3 +25,20 @@ containerEnvVars:
       secretKeyRef:
         name: db-credentials
         key: DB_PASSWORD
+namespace: default
+storageClass: local-path
+resources:
+  requests:
+    cpu: 100m
+    memory: 128Mi
+  limits:
+    cpu: 200m
+    memory: 256Mi
+liveness:
+  path: /
+  initialDelaySeconds: 15
+  periodSeconds: 20
+readiness:
+  path: /
+  initialDelaySeconds: 5
+  periodSeconds: 10

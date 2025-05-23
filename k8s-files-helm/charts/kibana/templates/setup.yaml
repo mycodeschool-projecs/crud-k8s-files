@@ -2,6 +2,7 @@ apiVersion: batch/v1
 kind: Job
 metadata:
   name: kibana-setup
+  namespace: {{ .Values.namespace }}
 spec:
   backoffLimit: 0      # Retry only once if it fails
   template:
@@ -11,6 +12,8 @@ spec:
         - name: elk-setup
           image: docker.elastic.co/elasticsearch/elasticsearch:8.12.1
           imagePullPolicy: IfNotPresent
+          resources:
+{{ toYaml .Values.resources | indent 12 }}
           env:
             - name: ELASTIC_PASSWORD
               valueFrom:
