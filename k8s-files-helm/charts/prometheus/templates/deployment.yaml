@@ -55,7 +55,7 @@ spec:
       volumes:
         - name: prometheus-config
           configMap:
-            name: app-config
+            name: prometheus-config
             items:
               - key: prometheus.yml
                 path: prometheus.yml

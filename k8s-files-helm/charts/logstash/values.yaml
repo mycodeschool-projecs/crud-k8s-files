@@ -8,7 +8,7 @@ containerEnvVars:
   - name: ELASTIC_PASSWORD
     valueFrom:
       secretKeyRef:
-        name: elk-secrets
+        name: logstash-secret
         key: elastic_password
   - name: CONFIG_STRING
     value: |

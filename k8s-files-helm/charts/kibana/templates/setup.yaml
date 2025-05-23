@@ -18,12 +18,12 @@ spec:
             - name: ELASTIC_PASSWORD
               valueFrom:
                 secretKeyRef:
-                  name: elk-secrets
+                  name: kibana-secret
                   key: elastic_password
             - name: KIBANA_PASSWORD
               valueFrom:
                 secretKeyRef:
-                  name: elk-secrets
+                  name: kibana-secret
                   key: kibana_password
 
           # ⬇️ switch from bash to sh
