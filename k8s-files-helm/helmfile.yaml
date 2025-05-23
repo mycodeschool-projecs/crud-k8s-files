@@ -1,6 +1,7 @@
 helmDefaults:
   atomic: true
   wait: true
+  timeout: 600 # wait up to 10 minutes for resources to become Ready
 
 releases:
   - name: infra

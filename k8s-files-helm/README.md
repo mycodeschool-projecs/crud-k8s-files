@@ -14,6 +14,14 @@ This directory contains multiple Helm charts that compose the CRUD application s
 helmfile sync
 ```
 
+The helmfile is configured with a default timeout of 10 minutes, which gives
+pods extra time to become Ready. If your cluster is particularly slow you can
+override this with the `--timeout` flag:
+
+```bash
+helmfile --timeout 15m sync
+```
+
 By default all charts install into the `default` namespace and use the `local-path` storage class. These can be adjusted by overriding the `namespace` and `storageClass` values for each release.
 
 ```bash
