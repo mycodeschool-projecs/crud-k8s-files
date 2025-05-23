@@ -54,3 +54,9 @@ releases:
     chart: ./charts/prometheus
     needs:
       - infra
+
+  - name: grafana
+    namespace: default
+    chart: ./charts/grafana
+    needs:
+      - infra
