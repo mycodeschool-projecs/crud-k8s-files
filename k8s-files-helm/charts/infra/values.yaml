@@ -1,0 +1,7 @@
+appName: infra
+appReplicas: 1
+appImage: nginx
+appVersion: latest
+containerPort: 80
+containerTargetPort: 80
+containerEnvVars: []
