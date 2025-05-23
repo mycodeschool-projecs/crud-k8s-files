@@ -3,60 +3,60 @@ helmDefaults:
   wait: true
 
 releases:
-  - name: infra
+  - name: ingress
     namespace: default
-    chart: ./charts/infra
+    chart: ./charts/ingress
 
   - name: kube-ms1
     namespace: default
     chart: ./charts/command-service
     needs:
-      - infra
+      - ingress
 
   - name: kube-land
     namespace: default
     chart: ./charts/auth-service
     needs:
-      - infra
+      - ingress
 
   - name: mysql-service
     namespace: default
     chart: ./charts/mysql-service
     needs:
-      - infra
+      - ingress
 
   - name: elasticsearch
     namespace: default
     chart: ./charts/elasticsearch
     needs:
-      - infra
+      - ingress
 
   - name: logstash
     namespace: default
     chart: ./charts/logstash
     needs:
-      - infra
+      - ingress
 
   - name: kibana
     namespace: default
     chart: ./charts/kibana
     needs:
-      - infra
+      - ingress
 
   - name: zipkin
     namespace: default
     chart: ./charts/zipkin
     needs:
-      - infra
+      - ingress
 
   - name: prometheus
     namespace: default
     chart: ./charts/prometheus
     needs:
-      - infra
+      - ingress
 
   - name: grafana
     namespace: default
     chart: ./charts/grafana
     needs:
-      - infra
+      - ingress
