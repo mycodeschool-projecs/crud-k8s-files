@@ -8,22 +8,22 @@ containerEnvVars:
   - name: MYSQL_ROOT_PASSWORD
     valueFrom:
       secretKeyRef:
-        name: db-credentials
+        name: mysql-secret
         key: DB_PASSWORD
   - name: MYSQL_DATABASE
     valueFrom:
       configMapKeyRef:
-        name: app-config
+        name: mysql-config
         key: DB_NAME
   - name: MYSQL_USER
     valueFrom:
       configMapKeyRef:
-        name: app-config
+        name: mysql-config
         key: DB_USER
   - name: MYSQL_PASSWORD
     valueFrom:
       secretKeyRef:
-        name: db-credentials
+        name: mysql-secret
         key: DB_PASSWORD
 namespace: default
 storageClass: local-path

@@ -10,53 +10,35 @@ releases:
   - name: kube-ms1
     namespace: default
     chart: ./charts/command-service
-    needs:
-      - infra
 
   - name: kube-land
     namespace: default
     chart: ./charts/auth-service
-    needs:
-      - infra
 
   - name: mysql-service
     namespace: default
     chart: ./charts/mysql-service
-    needs:
-      - infra
 
   - name: elasticsearch
     namespace: default
     chart: ./charts/elasticsearch
-    needs:
-      - infra
 
   - name: logstash
     namespace: default
     chart: ./charts/logstash
-    needs:
-      - infra
 
   - name: kibana
     namespace: default
     chart: ./charts/kibana
-    needs:
-      - infra
 
   - name: zipkin
     namespace: default
     chart: ./charts/zipkin
-    needs:
-      - infra
 
   - name: prometheus
     namespace: default
     chart: ./charts/prometheus
-    needs:
-      - infra
 
   - name: grafana
     namespace: default
     chart: ./charts/grafana
-    needs:
-      - infra

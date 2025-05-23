@@ -46,7 +46,7 @@ spec:
       volumes:
         - name: grafana-datasources
           configMap:
-            name: app-config
+            name: grafana-config
             items:
               - key: grafana-datasources.yml
                 path: grafana-datasources.yml

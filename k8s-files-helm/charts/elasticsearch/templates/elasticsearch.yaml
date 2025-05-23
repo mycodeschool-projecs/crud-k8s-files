@@ -25,7 +25,7 @@ spec:
             - name: ELASTIC_PASSWORD
               valueFrom:
                 secretKeyRef:
-                  name: elk-secrets
+                  name: elasticsearch-secret
                   key: elastic_password
       containers:
         - name: {{ .Values.appName }}
