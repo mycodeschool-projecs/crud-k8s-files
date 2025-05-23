@@ -22,6 +22,7 @@ containerEnvVars:
         key: kibana_password
   - name: TELEMETRY_ENABLED
     value: "false"
+containerEnvFrom: []
 namespace: default
 storageClass: local-path
 resources:

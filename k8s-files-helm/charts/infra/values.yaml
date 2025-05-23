@@ -5,6 +5,7 @@ appVersion: latest
 containerPort: 7651
 containerTargetPort: 7561
 containerEnvVars: []
+containerEnvFrom: []
 namespace: default
 storageClass: local-path
 resources:

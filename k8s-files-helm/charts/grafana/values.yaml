@@ -13,6 +13,7 @@ containerEnvVars:
     value: "http://localhost/grafana/"
   - name: GF_SERVER_SERVE_FROM_SUB_PATH
     value: "true"
+containerEnvFrom: []
 namespace: default
 storageClass: local-path
 resources:

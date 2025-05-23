@@ -27,6 +27,7 @@ containerEnvVars:
         index => "kube-logs"
       }
     }
+containerEnvFrom: []
 namespace: default
 storageClass: local-path
 resources:

@@ -47,6 +47,12 @@ spec:
 {{ toYaml .valueFrom | nindent 14 }}
               {{- end }}
             {{- end }}
+          {{- if .Values.containerEnvFrom }}
+          envFrom:
+            {{- range .Values.containerEnvFrom }}
+            - {{ toYaml . | nindent 12 }}
+            {{- end }}
+          {{- end }}
           volumeMounts:
             - name: prometheus-config
               mountPath: /etc/prometheus

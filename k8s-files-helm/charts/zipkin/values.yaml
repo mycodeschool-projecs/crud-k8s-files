@@ -4,6 +4,8 @@ appImage: openzipkin/zipkin
 appVersion:
 containerPort: 9411
 containerTargetPort: 9411
+containerEnvVars: []
+containerEnvFrom: []
 namespace: default
 storageClass: local-path
 resources:

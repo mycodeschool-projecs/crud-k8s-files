@@ -22,6 +22,12 @@ spec:
             - name: {{ .name }}
               value: {{ .value | quote }}
             {{- end }}
+          {{- if .Values.containerEnvFrom }}
+          envFrom:
+            {{- range .Values.containerEnvFrom }}
+            - {{ toYaml . | nindent 12 }}
+            {{- end }}
+          {{- end }}
           ports:
             - containerPort: {{ .Values.containerPort }}
           resources:

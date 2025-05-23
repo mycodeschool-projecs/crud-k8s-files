@@ -23,6 +23,7 @@ containerEnvVars:
   # --- security ---
   - name: xpack.security.enabled
     value: "true"
+containerEnvFrom: []
   - name: xpack.security.http.ssl.enabled
     value: "false"
 

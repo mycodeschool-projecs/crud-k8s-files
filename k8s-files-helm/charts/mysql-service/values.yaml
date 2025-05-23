@@ -25,6 +25,11 @@ containerEnvVars:
       secretKeyRef:
         name: mysql-secret
         key: DB_PASSWORD
+containerEnvFrom:
+  - configMapRef:
+      name: mysql-config
+  - secretRef:
+      name: mysql-secret
 namespace: default
 storageClass: local-path
 resources:
