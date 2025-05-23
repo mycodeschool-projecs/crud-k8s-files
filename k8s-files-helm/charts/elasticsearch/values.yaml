@@ -33,3 +33,21 @@ containerEnvVars:
   # --- JVM memory ---
   - name: ES_JAVA_OPTS
     value: "-Xms1g -Xmx1g"
+containerEnvFrom: []
+namespace: default
+storageClass: local-path
+resources:
+  requests:
+    cpu: 100m
+    memory: 256Mi
+  limits:
+    cpu: 200m
+    memory: 512Mi
+liveness:
+  path: /
+  initialDelaySeconds: 15
+  periodSeconds: 20
+readiness:
+  path: /
+  initialDelaySeconds: 5
+  periodSeconds: 10

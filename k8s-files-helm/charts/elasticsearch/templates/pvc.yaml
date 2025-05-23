@@ -2,8 +2,9 @@ apiVersion: v1
 kind: PersistentVolumeClaim
 metadata:
   name: es-pvc
+  namespace: {{ .Values.namespace }}
 spec:
-  storageClassName: local-path
+  storageClassName: {{ .Values.storageClass }}
   accessModes:
     - ReadWriteOnce
   resources:

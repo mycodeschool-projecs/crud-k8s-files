@@ -2,6 +2,7 @@ apiVersion: apps/v1
 kind: StatefulSet
 metadata:
   name: {{ .Values.appName }}
+  namespace: {{ .Values.namespace }}
 spec:
   serviceName: {{ .Values.appName }}
   replicas: {{ .Values.appReplicas }}
@@ -20,6 +21,10 @@ spec:
           volumeMounts:
             - name: es-data
               mountPath: /usr/share/elasticsearch/data
+          {{- if .Values.containerEnvFrom }}
+          envFrom:
+{{ toYaml .Values.containerEnvFrom | indent 12 }}
+          {{- end }}
           env:
             - name: ELASTIC_PASSWORD
               valueFrom:
@@ -34,6 +39,24 @@ spec:
               containerPort: {{.Values.containerPort}}
             - name: transport
               containerPort: {{.Values.containerTransporterPort}}
+          resources:
+{{ toYaml .Values.resources | indent 12 }}
+          readinessProbe:
+            httpGet:
+              path: {{ .Values.readiness.path }}
+              port: {{ .Values.containerPort }}
+            initialDelaySeconds: {{ .Values.readiness.initialDelaySeconds }}
+            periodSeconds: {{ .Values.readiness.periodSeconds }}
+          livenessProbe:
+            httpGet:
+              path: {{ .Values.liveness.path }}
+              port: {{ .Values.containerPort }}
+            initialDelaySeconds: {{ .Values.liveness.initialDelaySeconds }}
+            periodSeconds: {{ .Values.liveness.periodSeconds }}
+          {{- if .Values.containerEnvFrom }}
+          envFrom:
+{{ toYaml .Values.containerEnvFrom | indent 12 }}
+          {{- end }}
           env:
             {{- range .Values.containerEnvVars }}
             - name: {{ .name }}
@@ -50,7 +73,7 @@ apiVersion: v1
 kind: Service
 metadata:
   name: {{ .Values.appName }}
-  namespace: default
+  namespace: {{ .Values.namespace }}
 spec:
   type: ClusterIP
   ports:
