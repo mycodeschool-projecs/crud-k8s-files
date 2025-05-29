@@ -13,16 +13,20 @@ spec:
 {{ include "app.selectorLabels" . | indent 8 }}
     spec:
       containers:
-        - name: {{ .Values.appName }}
+        - name: {{ .Values.appName }}-container
           image: "{{ .Values.appImage }}:{{.Values.appVersion}}"
           ports:
             - containerPort: {{.Values.containerPort}}
           resources:
 {{ toYaml .Values.resources | indent 12 }}
-          {{- if .Values.env }}
-          env:
-{{ toYaml .Values.env | indent 12 }}
+          {{- if .Values.volumeMounts }}
+          volumeMounts:
+{{ toYaml .Values.volumeMounts | indent 12 }}
           {{- end }}
+      {{- if .Values.volumes }}
+      volumes:
+{{ toYaml .Values.volumes | indent 8 }}
+      {{- end }}
 ---
 apiVersion: v1
 kind: Service

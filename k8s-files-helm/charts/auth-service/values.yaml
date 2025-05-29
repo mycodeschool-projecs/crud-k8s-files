@@ -1,15 +1,10 @@
-appName:  kube-land
+appName: kube-land
 appReplicas: 1
 appImage: mycodeschool/crud-auth-api
 appVersion: 29.03.2025.16.35.52
 containerPort: 8082
 containerTargetPort: 8082
-containerEnvVars: []
-containerEnvFrom:
-  - configMapRef:
-      name: auth-service-env
 namespace: default
-storageClass: local-path
 resources:
   requests:
     cpu: 100m
@@ -17,11 +12,6 @@ resources:
   limits:
     cpu: 200m
     memory: 256Mi
-liveness:
-  path: /
-  initialDelaySeconds: 15
-  periodSeconds: 20
-readiness:
-  path: /
-  initialDelaySeconds: 5
-  periodSeconds: 10
+env:
+  - name: SPRING_PROFILES_ACTIVE
+    value: "kubernetes"

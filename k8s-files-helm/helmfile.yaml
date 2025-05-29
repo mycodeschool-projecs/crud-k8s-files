@@ -7,6 +7,12 @@ releases:
     namespace: default
     chart: ./charts/ingress
 
+  - name: app-client
+    namespace: default
+    chart: ./charts/app-client
+    needs:
+      - ingress
+
   - name: kube-ms1
     namespace: default
     chart: ./charts/command-service
@@ -19,44 +25,8 @@ releases:
     needs:
       - ingress
 
-  - name: mysql-service
-    namespace: default
-    chart: ./charts/mysql-service
-    needs:
-      - ingress
-
   - name: elasticsearch
     namespace: default
     chart: ./charts/elasticsearch
-    needs:
-      - ingress
-
-  - name: logstash
-    namespace: default
-    chart: ./charts/logstash
-    needs:
-      - ingress
-
-  - name: kibana
-    namespace: default
-    chart: ./charts/kibana
-    needs:
-      - ingress
-
-  - name: zipkin
-    namespace: default
-    chart: ./charts/zipkin
-    needs:
-      - ingress
-
-  - name: prometheus
-    namespace: default
-    chart: ./charts/prometheus
-    needs:
-      - ingress
-
-  - name: grafana
-    namespace: default
-    chart: ./charts/grafana
     needs:
       - ingress

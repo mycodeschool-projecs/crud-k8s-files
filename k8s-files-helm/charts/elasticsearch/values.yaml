@@ -2,32 +2,55 @@ appName: elasticsearch
 appReplicas: 1
 appImage: docker.elastic.co/elasticsearch/elasticsearch
 appVersion: 8.12.1
-
-containerPort: 9200
-containerTargetPort: 9200
-containerTransporterPort: 9300
-containerTransporterTargetPort: 9300
-
-containerEnvVars: []
-containerEnvFrom:
-  - configMapRef:
-      name: elasticsearch-env
-  - secretRef:
-      name: elastic-credentials
 namespace: default
-storageClass: local-path
+serviceName: elasticsearch
 resources:
   requests:
-    cpu: 100m
-    memory: 256Mi
+    cpu: 500m
+    memory: 1Gi
   limits:
-    cpu: 200m
-    memory: 512Mi
-liveness:
-  path: /
-  initialDelaySeconds: 15
-  periodSeconds: 20
-readiness:
-  path: /
-  initialDelaySeconds: 5
-  periodSeconds: 10
+    cpu: 1000m
+    memory: 2Gi
+ports:
+  - name: http
+    containerPort: 9200
+  - name: transport
+    containerPort: 9300
+env:
+  - name: discovery.type
+    value: single-node
+  - name: xpack.security.enabled
+    value: "true"
+  - name: xpack.security.http.ssl.enabled
+    value: "false"
+  - name: cluster.name
+    value: "elasticsearch"
+  - name: ES_JAVA_OPTS
+    value: "-Xms1g -Xmx1g"
+secretRefs:
+  - name: ELASTIC_PASSWORD
+    secretName: elk-secrets
+    secretKey: elastic_password
+  - name: KIBANA_PASSWORD
+    secretName: elk-secrets
+    secretKey: kibana_password
+volumeMounts:
+  - name: es-data
+    mountPath: /usr/share/elasticsearch/data
+volumes:
+  - name: es-data
+    persistentVolumeClaim:
+      claimName: es-pvc
+initContainers:
+  - name: configure-elasticsearch
+    image: docker.elastic.co/elasticsearch/elasticsearch:8.12.1
+    command: ['sh', '-c', 'bin/elasticsearch-keystore create && echo "${ELASTIC_PASSWORD}" | bin/elasticsearch-keystore add -x bootstrap.password']
+    volumeMounts:
+      - name: es-data
+        mountPath: /usr/share/elasticsearch/data
+    env:
+      - name: ELASTIC_PASSWORD
+        valueFrom:
+          secretKeyRef:
+            name: elk-secrets
+            key: elastic_password

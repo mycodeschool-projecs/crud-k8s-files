@@ -1,0 +1,33 @@
+appName: elasticsearch
+appReplicas: 1
+appImage: docker.elastic.co/elasticsearch/elasticsearch
+appVersion: 8.12.1
+
+containerPort: 9200
+containerTargetPort: 9200
+containerTransporterPort: 9300
+containerTransporterTargetPort: 9300
+
+containerEnvVars: []
+containerEnvFrom:
+  - configMapRef:
+      name: elasticsearch-env
+  - secretRef:
+      name: elastic-credentials
+namespace: default
+storageClass: local-path
+resources:
+  requests:
+    cpu: 100m
+    memory: 256Mi
+  limits:
+    cpu: 200m
+    memory: 512Mi
+liveness:
+  path: /
+  initialDelaySeconds: 15
+  periodSeconds: 20
+readiness:
+  path: /
+  initialDelaySeconds: 5
+  periodSeconds: 10

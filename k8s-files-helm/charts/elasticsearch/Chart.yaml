@@ -1,6 +1,6 @@
 apiVersion: v2
 name: elasticsearch
-description: StatefulSet chart for Elasticsearch
-version: 0.1.0
+description: Deployment chart for Elasticsearch
 type: application
+version: 0.1.0
 appVersion: "8.12.1"
