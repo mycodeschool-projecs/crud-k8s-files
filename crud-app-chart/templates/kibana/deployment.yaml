@@ -1,0 +1,106 @@
+{{- if and .Values.kibana.enabled .Values.features.logging }}
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "crud-app.fullname" . }}-kibana
+  namespace: {{ .Values.global.namespace }}
+  labels:
+    {{- include "crud-app.kibana.labels" . | nindent 4 }}
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      {{- include "crud-app.kibana.selectorLabels" . | nindent 6 }}
+  template:
+    metadata:
+      labels:
+        {{- include "crud-app.kibana.selectorLabels" . | nindent 8 }}
+      annotations:
+        checksum/secret: {{ include (print $.Template.BasePath "/secrets.yaml") . | sha256sum }}
+    spec:
+      {{- with .Values.global.imagePullSecrets }}
+      imagePullSecrets:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+
+      {{- if .Values.initContainers.enabled }}
+      initContainers:
+        - name: wait-for-elasticsearch
+          image: busybox:1.35
+          command: ['sh', '-c']
+          args:
+            - |
+              echo "Waiting for Elasticsearch to be ready..."
+              until nc -z {{ include "crud-app.fullname" . }}-elasticsearch 9200; do
+                echo "Elasticsearch not ready, sleeping 10s..."
+                sleep 10
+              done
+              echo "Elasticsearch is ready!"
+      {{- end }}
+
+      containers:
+        - name: kibana
+          image: {{ include "crud-app.image" (dict "image" .Values.kibana.image "global" .Values.global) }}
+          imagePullPolicy: {{ .Values.kibana.image.pullPolicy }}
+
+          ports:
+            - name: http
+              containerPort: 5601
+              protocol: TCP
+
+          env:
+            - name: ELASTICSEARCH_HOSTS
+              value: "http://{{ include "crud-app.fullname" . }}-elasticsearch:9200"
+            - name: ELASTICSEARCH_USERNAME
+              value: "elastic"
+            - name: ELASTICSEARCH_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "crud-app.fullname" . }}-elk-secrets
+                  key: elastic_password
+            - name: SERVER_BASEPATH
+              value: {{ .Values.kibana.basePath | quote }}
+            - name: SERVER_REWRITEBASEPATH
+              value: "true"
+            - name: XPACK_SECURITY_ENABLED
+              value: "true"
+            - name: XPACK_REPORTING_ENABLED
+              value: "true"
+            - name: XPACK_MONITORING_ENABLED
+              value: "true"
+            - name: LOGGING_VERBOSE
+              value: "false"
+
+          {{- if .Values.kibana.resources }}
+          resources:
+            {{- toYaml .Values.kibana.resources | nindent 12 }}
+          {{- end }}
+
+          {{- if .Values.healthChecks.enabled }}
+          livenessProbe:
+            httpGet:
+              path: /api/status
+              port: 5601
+            initialDelaySeconds: 60
+            periodSeconds: 30
+            timeoutSeconds: 10
+            failureThreshold: 3
+
+          readinessProbe:
+            httpGet:
+              path: /api/status
+              port: 5601
+            initialDelaySeconds: 30
+            periodSeconds: 10
+            timeoutSeconds: 5
+            failureThreshold: 3
+          {{- end }}
+
+          securityContext:
+            runAsUser: 1000
+            runAsGroup: 1000
+            runAsNonRoot: true
+
+      securityContext:
+        fsGroup: 1000
+{{- end }}

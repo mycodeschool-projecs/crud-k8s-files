@@ -1,0 +1,26 @@
+{{- if and .Values.mysql.enabled .Values.features.database }}
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "crud-app.fullname" . }}-mysql
+  namespace: {{ .Values.global.namespace }}
+  labels:
+    {{- include "crud-app.mysql.labels" . | nindent 4 }}
+spec:
+  # Headless service (clusterIP: None) for StatefulSet
+  clusterIP: None
+
+  # Service ports
+  ports:
+    - name: mysql
+      port: 3306
+      targetPort: mysql
+      protocol: TCP
+
+  # Pod selector
+  selector:
+    {{- include "crud-app.mysql.selectorLabels" . | nindent 4 }}
+
+  # Session affinity (optional)
+  sessionAffinity: None
+{{- end }}

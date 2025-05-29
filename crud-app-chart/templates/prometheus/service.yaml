@@ -1,0 +1,18 @@
+{{- if and .Values.prometheus.enabled .Values.features.monitoring }}
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "crud-app.fullname" . }}-prometheus
+  namespace: {{ .Values.global.namespace }}
+  labels:
+    {{- include "crud-app.prometheus.labels" . | nindent 4 }}
+spec:
+  type: ClusterIP
+  ports:
+    - name: http
+      port: 9090
+      targetPort: http
+      protocol: TCP
+  selector:
+    {{- include "crud-app.prometheus.selectorLabels" . | nindent 4 }}
+{{- end }}

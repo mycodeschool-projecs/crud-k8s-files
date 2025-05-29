@@ -1,0 +1,18 @@
+{{- if and .Values.grafana.enabled .Values.features.monitoring }}
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "crud-app.fullname" . }}-grafana
+  namespace: {{ .Values.global.namespace }}
+  labels:
+    {{- include "crud-app.grafana.labels" . | nindent 4 }}
+spec:
+  type: ClusterIP
+  ports:
+    - name: http
+      port: 3000
+      targetPort: http
+      protocol: TCP
+  selector:
+    {{- include "crud-app.grafana.selectorLabels" . | nindent 4 }}
+{{- end }}

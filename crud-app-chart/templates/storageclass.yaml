@@ -1,0 +1,12 @@
+{{- if and .Values.global.storageClass (ne .Values.global.storageClass "local-path") (ne .Values.global.storageClass "default") }}
+apiVersion: storage.k8s.io/v1
+kind: StorageClass
+metadata:
+  name: {{ .Values.global.storageClass }}
+  labels:
+    {{- include "crud-app.labels" . | nindent 4 }}
+provisioner: rancher.io/local-path
+volumeBindingMode: Immediate
+allowVolumeExpansion: true
+reclaimPolicy: Retain
+{{- end }}

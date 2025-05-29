@@ -1,0 +1,18 @@
+{{- if and .Values.zipkin.enabled .Values.features.tracing }}
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "crud-app.fullname" . }}-zipkin
+  namespace: {{ .Values.global.namespace }}
+  labels:
+    {{- include "crud-app.zipkin.labels" . | nindent 4 }}
+spec:
+  type: ClusterIP
+  ports:
+    - name: http
+      port: 9411
+      targetPort: http
+      protocol: TCP
+  selector:
+    {{- include "crud-app.zipkin.selectorLabels" . | nindent 4 }}
+{{- end }}

@@ -1,0 +1,26 @@
+{{- if and .Values.logstash.enabled .Values.features.logging }}
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "crud-app.fullname" . }}-logstash
+  namespace: {{ .Values.global.namespace }}
+  labels:
+    {{- include "crud-app.logstash.labels" . | nindent 4 }}
+spec:
+  type: ClusterIP
+  ports:
+    - name: tcp
+      port: {{ .Values.logstash.port }}
+      targetPort: tcp
+      protocol: TCP
+    - name: beats
+      port: 5044
+      targetPort: beats
+      protocol: TCP
+    - name: http
+      port: 9600
+      targetPort: 9600
+      protocol: TCP
+  selector:
+    {{- include "crud-app.logstash.selectorLabels" . | nindent 4 }}
+{{- end }}

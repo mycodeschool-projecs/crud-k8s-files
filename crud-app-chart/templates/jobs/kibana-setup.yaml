@@ -1,0 +1,254 @@
+{{- if and .Values.elasticsearch.enabled .Values.kibana.enabled .Values.features.logging }}
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: {{ include "crud-app.fullname" . }}-kibana-setup
+  namespace: {{ .Values.global.namespace }}
+  labels:
+    {{- include "crud-app.labels" . | nindent 4 }}
+    app.kubernetes.io/component: kibana-setup
+  annotations:
+    # Run this job after Elasticsearch is deployed
+    "helm.sh/hook": post-install,post-upgrade
+    "helm.sh/hook-weight": "1"
+    "helm.sh/hook-delete-policy": before-hook-creation,hook-succeeded
+    # Add annotation to force recreation on upgrade
+    "helm.sh/hook-revision": "{{ .Release.Revision }}"
+spec:
+  backoffLimit: 3  # Retry up to 3 times if it fails
+  activeDeadlineSeconds: 600  # Timeout after 10 minutes
+  template:
+    metadata:
+      labels:
+        {{- include "crud-app.labels" . | nindent 8 }}
+        app.kubernetes.io/component: kibana-setup
+    spec:
+      restartPolicy: Never  # Don't restart failed jobs
+
+      containers:
+        - name: elk-setup
+          image: {{ include "crud-app.image" (dict "image" .Values.elasticsearch.image "global" .Values.global) }}
+          imagePullPolicy: {{ .Values.elasticsearch.image.pullPolicy }}
+
+          # Environment variables
+          env:
+            - name: ELASTIC_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "crud-app.fullname" . }}-elk-secrets
+                  key: elastic_password
+            - name: KIBANA_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "crud-app.fullname" . }}-elk-secrets
+                  key: kibana_password
+            - name: ELASTICSEARCH_URL
+              value: {{ include "crud-app.elasticsearch.url" . }}
+
+          # Setup script
+          command: ["sh", "-c"]
+          args:
+            - |
+              set -e
+
+              echo "=== Kibana Setup Job Started ==="
+              echo "Elasticsearch URL: ${ELASTICSEARCH_URL}"
+              echo "Job running with UID: $(id -u) / GID: $(id -g)"
+              echo "Current directory: $(pwd)"
+
+              # Wait for Elasticsearch to be ready
+              echo "Waiting for Elasticsearch to be available..."
+              timeout=600  # 10 minutes timeout
+              while [ $timeout -gt 0 ]; do
+                echo "Checking Elasticsearch availability... (timeout: ${timeout}s)"
+                response=$(curl -s -w "\n%{http_code}" "${ELASTICSEARCH_URL}")
+                http_code=$(echo "$response" | tail -n1)
+                response_body=$(echo "$response" | head -n -1)
+
+                echo "Response code: $http_code"
+                echo "Response snippet: $(echo "$response_body" | head -c 100)..."
+
+                if [ "$http_code" = "200" ] || [ "$http_code" = "401" ]; then
+                  echo "Elasticsearch is responding with HTTP $http_code!"
+                  break
+                elif echo "$response_body" | grep -q "missing authentication credentials\|You Know, for Search\|security_exception"; then
+                  echo "Elasticsearch is responding with authentication challenge!"
+                  break
+                fi
+
+                echo "Elasticsearch not ready, waiting 10s..."
+                sleep 10
+                timeout=$((timeout - 10))
+              done
+
+              if [ $timeout -le 0 ]; then
+                echo "ERROR: Elasticsearch not ready after 10 minutes"
+                exit 1
+              fi
+
+              echo "Elasticsearch is available, proceeding with setup..."
+
+              # Set kibana_system user password
+              echo "Setting kibana_system user password..."
+              echo "Using Elasticsearch credentials to authenticate..."
+              max_retries=10
+              retry_count=0
+
+              while [ $retry_count -lt $max_retries ]; do
+                echo "Attempt $((retry_count + 1)) of $max_retries to set kibana_system password..."
+
+                # First check if we can authenticate with elastic user
+                auth_check=$(curl -s -w "\n%{http_code}" -X GET \
+                  -u "elastic:${ELASTIC_PASSWORD}" \
+                  "${ELASTICSEARCH_URL}/_security/_authenticate")
+
+                auth_code=$(echo "$auth_check" | tail -n1)
+                auth_body=$(echo "$auth_check" | head -n -1)
+
+                echo "Authentication check result: HTTP $auth_code"
+                if [ "$auth_code" != "200" ]; then
+                  echo "Warning: Authentication with elastic user failed: $auth_body"
+                  echo "Will still try to set password..."
+                else
+                  echo "Successfully authenticated with elastic user"
+                  echo "Auth response: $auth_body"
+                fi
+
+                # Now try to set the kibana_system password
+                response=$(curl -s -w "\n%{http_code}" -X POST \
+                  -u "elastic:${ELASTIC_PASSWORD}" \
+                  -H "Content-Type: application/json" \
+                  -d "{\"password\":\"${KIBANA_PASSWORD}\"}" \
+                  "${ELASTICSEARCH_URL}/_security/user/kibana_system/_password")
+
+                http_code=$(echo "$response" | tail -n1)
+                response_body=$(echo "$response" | head -n -1)
+
+                echo "Password update response code: $http_code"
+
+                if [ "$http_code" = "200" ]; then
+                  echo "Successfully set kibana_system password!"
+                  echo "Response: $response_body"
+                  break
+                elif [ "$http_code" = "400" ] && echo "$response_body" | grep -q "password"; then
+                  echo "Password already set or validation error. Continuing..."
+                  echo "Response: $response_body"
+                  break
+                elif [ "$http_code" = "404" ]; then
+                  echo "User kibana_system not found. This might be expected in some Elasticsearch versions."
+                  echo "Will continue and let Kibana create the user if needed."
+                  break
+                else
+                  retry_count=$((retry_count + 1))
+                  echo "Attempt $retry_count failed (HTTP: $http_code)"
+                  echo "Response: $response_body"
+                  if [ $retry_count -lt $max_retries ]; then
+                    echo "Retrying in 10 seconds..."
+                    sleep 10
+                  fi
+                fi
+              done
+
+              if [ $retry_count -eq $max_retries ]; then
+                echo "WARNING: Could not set kibana_system password after $max_retries attempts"
+                echo "This might be OK if Kibana can create/update the user itself"
+                echo "Will continue with setup..."
+              fi
+
+              # Create index templates for application logs
+              echo "Creating index template for application logs..."
+              echo "Attempting to create/update the 'crud-app-logs' index template..."
+
+              template_response=$(curl -s -w "\n%{http_code}" -X PUT \
+                -u "elastic:${ELASTIC_PASSWORD}" \
+                -H "Content-Type: application/json" \
+                -d '{
+                  "index_patterns": ["crud-app-logs-*"],
+                  "template": {
+                    "settings": {
+                      "number_of_shards": 1,
+                      "number_of_replicas": 0,
+                      "index.refresh_interval": "5s"
+                    },
+                    "mappings": {
+                      "properties": {
+                        "@timestamp": {
+                          "type": "date"
+                        },
+                        "level": {
+                          "type": "keyword"
+                        },
+                        "logger": {
+                          "type": "keyword"
+                        },
+                        "application": {
+                          "type": "keyword"
+                        },
+                        "environment": {
+                          "type": "keyword"
+                        },
+                        "message": {
+                          "type": "text",
+                          "analyzer": "standard"
+                        },
+                        "thread": {
+                          "type": "keyword"
+                        },
+                        "class": {
+                          "type": "keyword"
+                        }
+                      }
+                    }
+                  }
+                }' \
+                "${ELASTICSEARCH_URL}/_index_template/crud-app-logs")
+
+              template_code=$(echo "$template_response" | tail -n1)
+              template_body=$(echo "$template_response" | head -n -1)
+
+              echo "Index template creation response code: $template_code"
+              echo "Response: $template_body"
+
+              if [ "$template_code" = "200" ] || [ "$template_code" = "201" ]; then
+                echo "Successfully created/updated index template 'crud-app-logs'"
+              else
+                echo "WARNING: Failed to create index template (HTTP: $template_code)"
+                echo "This might affect log indexing, but Kibana should still work"
+                echo "Will continue with setup..."
+              fi
+
+              echo ""
+              echo "=== Kibana Setup Job Completed ==="
+              echo "Setup process has finished with the following results:"
+              echo "=== Setup Summary ==="
+              echo "- Elasticsearch URL: ${ELASTICSEARCH_URL}"
+              echo "- Elasticsearch connectivity: VERIFIED"
+
+              # Report on kibana_system user status
+              if [ "$retry_count" -eq "$max_retries" ]; then
+                echo "- Kibana system user password: WARNING (could not set, but Kibana might handle this)"
+              else
+                echo "- Kibana system user password: CONFIGURED"
+              fi
+
+              # Report on index template status
+              if [ "$template_code" = "200" ] || [ "$template_code" = "201" ]; then
+                echo "- Log index template: CREATED"
+              else
+                echo "- Log index template: WARNING (creation failed with HTTP $template_code)"
+              fi
+
+              echo "- Job execution time: $(date)"
+              echo ""
+              echo "Kibana should now be able to connect to Elasticsearch."
+              echo "If you encounter issues, check the job logs for detailed information."
+
+          # Resource limits for the setup job
+          resources:
+            requests:
+              memory: "128Mi"
+              cpu: "100m"
+            limits:
+              memory: "256Mi"
+              cpu: "200m"
+{{- end }}

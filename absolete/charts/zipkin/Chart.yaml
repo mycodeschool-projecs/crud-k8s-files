@@ -1,6 +1,0 @@
-apiVersion: v2
-name: zipkin
-description: Deployment chart for zipkin
-version: 0.1.0
-type: application
-appVersion: "2"

@@ -1,0 +1,16 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "crud-app.fullname" . }}-auth-service
+  namespace: {{ .Values.global.namespace }}
+  labels:
+    {{- include "crud-app.auth-service.labels" . | nindent 4 }}
+spec:
+  type: {{ .Values.services.authService.type }}
+  ports:
+    - name: http
+      port: {{ .Values.services.authService.port }}
+      targetPort: http
+      protocol: TCP
+  selector:
+    {{- include "crud-app.auth-service.selectorLabels" . | nindent 4 }}

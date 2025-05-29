@@ -1,0 +1,144 @@
+{{- if and .Values.logstash.enabled .Values.features.logging }}
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "crud-app.fullname" . }}-logstash
+  namespace: {{ .Values.global.namespace }}
+  labels:
+    {{- include "crud-app.logstash.labels" . | nindent 4 }}
+spec:
+  replicas: 1
+
+  selector:
+    matchLabels:
+      {{- include "crud-app.logstash.selectorLabels" . | nindent 6 }}
+
+  template:
+    metadata:
+      labels:
+        {{- include "crud-app.logstash.selectorLabels" . | nindent 8 }}
+      annotations:
+        checksum/secret: {{ include (print $.Template.BasePath "/secrets.yaml") . | sha256sum }}
+
+    spec:
+      {{- if .Values.global.imagePullSecrets }}
+      imagePullSecrets:
+        {{- toYaml .Values.global.imagePullSecrets | nindent 8 }}
+      {{- end }}
+
+      # Init container to wait for Elasticsearch
+      {{- if .Values.initContainers.enabled }}
+      initContainers:
+        - name: wait-for-elasticsearch
+          image: busybox:1.35
+          command: ['sh', '-c']
+          args:
+            - |
+              until nc -z {{ include "crud-app.fullname" . }}-elasticsearch 9200; do
+                echo "Waiting for Elasticsearch..."
+                sleep 10
+              done
+              echo "Elasticsearch is ready!"
+      {{- end }}
+
+      containers:
+        - name: logstash
+          image: {{ include "crud-app.image" (dict "image" .Values.logstash.image "global" .Values.global) }}
+          imagePullPolicy: {{ .Values.logstash.image.pullPolicy }}
+
+          # Environment variables
+          env:
+            - name: ELASTIC_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "crud-app.fullname" . }}-elk-secrets
+                  key: elastic_password
+            - name: ELASTICSEARCH_HOSTS
+              value: {{ include "crud-app.elasticsearch.url" . }}
+            # Logstash pipeline configuration
+            - name: CONFIG_STRING
+              value: |
+                input {
+                  tcp {
+                    port => {{ .Values.logstash.port }}
+                    codec => json_lines
+                  }
+                  beats {
+                    port => 5044
+                  }
+                }
+
+                filter {
+                  # Parse Spring Boot logs
+                  if [fields][service] {
+                    mutate {
+                      add_field => { "service_name" => "%{[fields][service]}" }
+                    }
+                  }
+
+                  # Parse JSON logs
+                  if [message] =~ /^\{.*\}$/ {
+                    json {
+                      source => "message"
+                    }
+                  }
+
+                  # Add timestamp parsing
+                  date {
+                    match => [ "timestamp", "ISO8601" ]
+                  }
+                }
+
+                output {
+                  elasticsearch {
+                    hosts => ["{{ include "crud-app.elasticsearch.url" . }}"]
+                    user => "elastic"
+                    password => "${ELASTIC_PASSWORD}"
+                    ssl => false
+                    index => "kube-logs-%{+YYYY.MM.dd}"
+                    template_name => "kube-logs"
+                    template_pattern => "kube-logs-*"
+                  }
+
+                  # Debug output (optional)
+                  stdout {
+                    codec => rubydebug
+                  }
+                }
+
+          # Container ports
+          ports:
+            - name: tcp
+              containerPort: {{ .Values.logstash.port }}
+              protocol: TCP
+            - name: beats
+              containerPort: 5044
+              protocol: TCP
+
+          # Resource configuration
+          {{- if .Values.logstash.resources }}
+          resources:
+            {{- toYaml .Values.logstash.resources | nindent 12 }}
+          {{- end }}
+
+          # Health checks
+          {{- if .Values.healthChecks.enabled }}
+          livenessProbe:
+            httpGet:
+              path: /
+              port: 9600
+            initialDelaySeconds: 120
+            periodSeconds: 10
+            timeoutSeconds: 5
+            failureThreshold: 3
+
+          readinessProbe:
+            httpGet:
+              path: /
+              port: 9600
+            initialDelaySeconds: 60
+            periodSeconds: 5
+            timeoutSeconds: 3
+            failureThreshold: 3
+          {{- end }}
+{{- end }}

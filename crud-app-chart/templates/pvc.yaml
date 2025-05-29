@@ -1,0 +1,85 @@
+{{- if and .Values.mysql.enabled .Values.features.database }}
+# MySQL Persistent Volume Claim
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: {{ include "crud-app.fullname" . }}-mysql-pvc
+  namespace: {{ .Values.global.namespace }}
+  labels:
+    {{- include "crud-app.mysql.labels" . | nindent 4 }}
+spec:
+  {{- if .Values.global.storageClass }}
+  storageClassName: {{ .Values.global.storageClass }}
+  {{- end }}
+  accessModes:
+    - {{ .Values.mysql.storage.accessMode }}
+  resources:
+    requests:
+      storage: {{ .Values.mysql.storage.size }}
+
+---
+{{- end }}
+
+{{- if and .Values.elasticsearch.enabled .Values.features.logging }}
+# Elasticsearch Persistent Volume Claim
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: {{ include "crud-app.fullname" . }}-elasticsearch-pvc
+  namespace: {{ .Values.global.namespace }}
+  labels:
+    {{- include "crud-app.elasticsearch.labels" . | nindent 4 }}
+spec:
+  {{- if .Values.global.storageClass }}
+  storageClassName: {{ .Values.global.storageClass }}
+  {{- end }}
+  accessModes:
+    - {{ .Values.elasticsearch.storage.accessMode }}
+  resources:
+    requests:
+      storage: {{ .Values.elasticsearch.storage.size }}
+
+---
+{{- end }}
+
+{{- if and .Values.prometheus.enabled .Values.features.monitoring }}
+# Prometheus Persistent Volume Claim
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: {{ include "crud-app.fullname" . }}-prometheus-pvc
+  namespace: {{ .Values.global.namespace }}
+  labels:
+    {{- include "crud-app.prometheus.labels" . | nindent 4 }}
+spec:
+  {{- if .Values.global.storageClass }}
+  storageClassName: {{ .Values.global.storageClass }}
+  {{- end }}
+  accessModes:
+    - {{ .Values.prometheus.storage.accessMode }}
+  resources:
+    requests:
+      storage: {{ .Values.prometheus.storage.size }}
+
+---
+{{- end }}
+
+{{- if and .Values.grafana.enabled .Values.features.monitoring }}
+# Grafana Persistent Volume Claim
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: {{ include "crud-app.fullname" . }}-grafana-pvc
+  namespace: {{ .Values.global.namespace }}
+  labels:
+    {{- include "crud-app.grafana.labels" . | nindent 4 }}
+spec:
+  {{- if .Values.global.storageClass }}
+  storageClassName: {{ .Values.global.storageClass }}
+  {{- end }}
+  accessModes:
+    - {{ .Values.grafana.storage.accessMode }}
+  resources:
+    requests:
+      storage: {{ .Values.grafana.storage.size }}
+{{- end }}

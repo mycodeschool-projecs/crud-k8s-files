@@ -1,0 +1,25 @@
+{{- if and .Values.kibana.enabled .Values.features.logging }}
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "crud-app.fullname" . }}-kibana
+  namespace: {{ .Values.global.namespace }}
+  labels:
+    {{- include "crud-app.kibana.labels" . | nindent 4 }}
+spec:
+  type: ClusterIP  # Internal service, accessed via ingress
+
+  # Service ports
+  ports:
+    - name: http
+      port: 5601
+      targetPort: http
+      protocol: TCP
+
+  # Selector to match Kibana pods
+  selector:
+    {{- include "crud-app.kibana.selectorLabels" . | nindent 4 }}
+
+  # Session affinity for consistent user sessions
+  sessionAffinity: ClientIP
+{{- end }}

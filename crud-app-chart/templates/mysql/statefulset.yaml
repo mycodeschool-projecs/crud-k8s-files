@@ -1,0 +1,145 @@
+{{- if and .Values.mysql.enabled .Values.features.database }}
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: {{ include "crud-app.fullname" . }}-mysql
+  namespace: {{ .Values.global.namespace }}
+  labels:
+    {{- include "crud-app.mysql.labels" . | nindent 4 }}
+spec:
+  # StatefulSet configuration
+  serviceName: {{ include "crud-app.fullname" . }}-mysql  # Headless service name
+  replicas: 1  # MySQL typically runs as single instance
+
+  # Pod selection
+  selector:
+    matchLabels:
+      {{- include "crud-app.mysql.selectorLabels" . | nindent 6 }}
+
+  # Pod template
+  template:
+    metadata:
+      labels:
+        {{- include "crud-app.mysql.selectorLabels" . | nindent 8 }}
+      annotations:
+        # Force pod restart on config changes
+        checksum/config: {{ include (print $.Template.BasePath "/configmap.yaml") . | sha256sum }}
+        checksum/secret: {{ include (print $.Template.BasePath "/secrets.yaml") . | sha256sum }}
+
+    spec:
+      {{- if .Values.global.imagePullSecrets }}
+      imagePullSecrets:
+        {{- toYaml .Values.global.imagePullSecrets | nindent 8 }}
+      {{- end }}
+
+      # Security context for the pod
+      {{- if .Values.securityContext }}
+      securityContext:
+        {{- toYaml .Values.securityContext | nindent 8 }}
+      {{- end }}
+
+      containers:
+        - name: mysql
+          image: {{ include "crud-app.image" (dict "image" .Values.mysql.image "global" .Values.global) }}
+          imagePullPolicy: {{ .Values.mysql.image.pullPolicy }}
+
+          # Environment variables for MySQL configuration
+          env:
+            - name: MYSQL_ROOT_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "crud-app.fullname" . }}-db-credentials
+                  key: MYSQL_ROOT_PASSWORD
+            - name: MYSQL_DATABASE
+              value: {{ .Values.mysql.database | quote }}
+            - name: MYSQL_USER
+              value: {{ .Values.mysql.user | quote }}
+            - name: MYSQL_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "crud-app.fullname" . }}-db-credentials
+                  key: DB_PASSWORD
+            # Performance tuning
+            - name: MYSQL_INNODB_BUFFER_POOL_SIZE
+              value: "128M"
+            - name: MYSQL_MAX_CONNECTIONS
+              value: "100"
+
+          # Container ports
+          ports:
+            - name: mysql
+              containerPort: 3306
+              protocol: TCP
+
+          # Volume mounts
+          volumeMounts:
+            - name: mysql-storage
+              mountPath: /var/lib/mysql
+            # Custom MySQL configuration (optional)
+            {{- if .Values.mysql.customConfig }}
+            - name: mysql-config
+              mountPath: /etc/mysql/conf.d
+              readOnly: true
+            {{- end }}
+
+          # Resource limits and requests
+          {{- if .Values.mysql.resources }}
+          resources:
+            {{- toYaml .Values.mysql.resources | nindent 12 }}
+          {{- end }}
+
+          # Health checks
+          {{- if .Values.healthChecks.enabled }}
+          livenessProbe:
+            exec:
+              command:
+                - bash
+                - -c
+                - 'mysqladmin ping -h localhost -u root -p"${MYSQL_ROOT_PASSWORD}"'
+            initialDelaySeconds: 30
+            periodSeconds: 10
+            timeoutSeconds: 5
+            failureThreshold: 3
+
+          readinessProbe:
+            exec:
+              command:
+                - bash
+                - -c
+                - 'mysql -h localhost -u root -p"${MYSQL_ROOT_PASSWORD}" -e "SELECT 1"'
+            initialDelaySeconds: 10
+            periodSeconds: 5
+            timeoutSeconds: 3
+            failureThreshold: 3
+          {{- end }}
+
+      # Volumes for custom configuration (optional)
+      {{- if .Values.mysql.customConfig }}
+      volumes:
+        - name: mysql-config
+          configMap:
+            name: {{ include "crud-app.fullname" . }}-mysql-config
+      {{- end }}
+
+      # Restart policy
+      restartPolicy: Always
+
+      # DNS policy
+      dnsPolicy: ClusterFirst
+
+  # Volume claim templates for StatefulSet
+  volumeClaimTemplates:
+    - metadata:
+        name: mysql-storage
+        labels:
+          {{- include "crud-app.mysql.labels" . | nindent 10 }}
+      spec:
+        {{- if .Values.global.storageClass }}
+        storageClassName: {{ .Values.global.storageClass }}
+        {{- end }}
+        accessModes:
+          - {{ .Values.mysql.storage.accessMode }}
+        resources:
+          requests:
+            storage: {{ .Values.mysql.storage.size }}
+{{- end }}

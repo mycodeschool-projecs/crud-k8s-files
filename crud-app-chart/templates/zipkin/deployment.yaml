@@ -1,0 +1,86 @@
+{{- if and .Values.zipkin.enabled .Values.features.tracing }}
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "crud-app.fullname" . }}-zipkin
+  namespace: {{ .Values.global.namespace }}
+  labels:
+    {{- include "crud-app.zipkin.labels" . | nindent 4 }}
+spec:
+  replicas: 1
+
+  selector:
+    matchLabels:
+      {{- include "crud-app.zipkin.selectorLabels" . | nindent 6 }}
+
+  template:
+    metadata:
+      labels:
+        {{- include "crud-app.zipkin.selectorLabels" . | nindent 8 }}
+
+    spec:
+      {{- if .Values.global.imagePullSecrets }}
+      imagePullSecrets:
+        {{- toYaml .Values.global.imagePullSecrets | nindent 8 }}
+      {{- end }}
+
+      containers:
+        - name: zipkin
+          image: {{ include "crud-app.image" (dict "image" .Values.zipkin.image "global" .Values.global) }}
+          imagePullPolicy: {{ .Values.zipkin.image.pullPolicy }}
+
+          # Environment variables
+          env:
+            - name: STORAGE_TYPE
+              value: "mem"  # Use memory storage for simplicity
+            # Optional: Configure Elasticsearch storage
+            {{- if .Values.elasticsearch.enabled }}
+            # - name: STORAGE_TYPE
+            #   value: "elasticsearch"
+            # - name: ES_HOSTS
+            #   value: {{ include "crud-app.elasticsearch.url" . }}
+            # - name: ES_USERNAME
+            #   value: "elastic"
+            # - name: ES_PASSWORD
+            #   valueFrom:
+            #     secretKeyRef:
+            #       name: {{ include "crud-app.fullname" . }}-elk-secrets
+            #       key: elastic_password
+            {{- end }}
+            # Java options for performance
+            - name: JAVA_OPTS
+              value: "-Xms256m -Xmx512m"
+
+          # Container ports
+          ports:
+            - name: http
+              containerPort: 9411
+              protocol: TCP
+
+          # Resource configuration
+          {{- if .Values.zipkin.resources }}
+          resources:
+            {{- toYaml .Values.zipkin.resources | nindent 12 }}
+          {{- end }}
+
+          # Health checks
+          {{- if .Values.healthChecks.enabled }}
+          livenessProbe:
+            httpGet:
+              path: /health
+              port: 9411
+            initialDelaySeconds: 30
+            periodSeconds: 10
+            timeoutSeconds: 5
+            failureThreshold: 3
+
+          readinessProbe:
+            httpGet:
+              path: /health
+              port: 9411
+            initialDelaySeconds: 15
+            periodSeconds: 5
+            timeoutSeconds: 3
+            failureThreshold: 3
+          {{- end }}
+{{- end }}

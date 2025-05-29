@@ -1,0 +1,16 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "crud-app.fullname" . }}-react-app
+  namespace: {{ .Values.global.namespace }}
+  labels:
+    {{- include "crud-app.react-app.labels" . | nindent 4 }}
+spec:
+  type: {{ .Values.services.reactApp.type }}
+  ports:
+    - name: http
+      port: {{ .Values.services.reactApp.port }}
+      targetPort: http
+      protocol: TCP
+  selector:
+    {{- include "crud-app.react-app.selectorLabels" . | nindent 4 }}
