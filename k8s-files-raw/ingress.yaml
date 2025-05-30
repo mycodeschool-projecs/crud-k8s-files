@@ -15,41 +15,41 @@ spec:
             pathType: Prefix
             backend:
               service:
-                name: crud-app-kube-ms1
+                name: kube-ms1
                 port:
                   number: 8081
           - path: /api
             pathType: Prefix
             backend:
               service:
-                name: crud-app-kube-land
+                name: kube-land
                 port:
                   number: 8082
           - path: /
             pathType: Prefix
             backend:
               service:
-                name: crud-app-react
+                name:  react-app
                 port:
                   number: 3000
           - path: /kibana
             pathType: Prefix
             backend:
               service:
-                name: crud-app-kibana
+                name: kibana
                 port:
                   number: 5601
           - path: /zipkin
             pathType: Prefix
             backend:
               service:
-                name: crud-app-zipkin
+                name: zipkin
                 port:
                   number: 9411
           - path: /grafana
             pathType: Prefix
             backend:
               service:
-                name: crud-app-grafana
+                name: grafana
                 port:
                   number: 3000
