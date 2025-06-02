@@ -2,6 +2,7 @@ apiVersion: apps/v1
 kind: StatefulSet
 metadata:
   name: elasticsearch
+  namespace: default
 spec:
   serviceName: elasticsearch
   replicas: 1
@@ -14,18 +15,42 @@ spec:
         app: elasticsearch
     spec:
       initContainers:
-        - name: configure-elasticsearch
-          image: docker.elastic.co/elasticsearch/elasticsearch:8.12.1
-          command: ['sh', '-c', 'bin/elasticsearch-keystore create && echo "${ELASTIC_PASSWORD}" | bin/elasticsearch-keystore add -x bootstrap.password']
+        - name: fix-permissions
+          image: busybox:1.35
+          command: ['sh', '-c', 'chown -R 1000:1000 /usr/share/elasticsearch/data || true']
           volumeMounts:
             - name: es-data
               mountPath: /usr/share/elasticsearch/data
+          securityContext:
+            privileged: true
+            
+        - name: configure-elasticsearch
+          image: docker.elastic.co/elasticsearch/elasticsearch:8.12.1
+          command: ['sh', '-c']
+          args:
+            - |
+              set -e
+              echo "Configuring Elasticsearch..."
+              
+              rm -f /usr/share/elasticsearch/config/elasticsearch.keystore || true
+              
+              bin/elasticsearch-keystore create
+              
+              echo "${ELASTIC_PASSWORD}" | bin/elasticsearch-keystore add -x bootstrap.password
+              
+              echo "Configuration complete!"
+          volumeMounts:
+            - name: es-data
+              mountPath: /usr/share/elasticsearch/data
+            - name: es-config
+              mountPath: /usr/share/elasticsearch/config
           env:
             - name: ELASTIC_PASSWORD
               valueFrom:
                 secretKeyRef:
                   name: elk-secrets
                   key: elastic_password
+            
       containers:
         - name: elasticsearch
           image: docker.elastic.co/elasticsearch/elasticsearch:8.12.1
@@ -45,28 +70,111 @@ spec:
                 secretKeyRef:
                   name: elk-secrets
                   key: kibana_password
+            
+            - name: cluster.name
+              value: "elasticsearch"
+            - name: node.name
+              value: "elasticsearch-0"
             - name: discovery.type
-              value: single-node
+              value: "single-node"
+            
             - name: xpack.security.enabled
               value: "true"
             - name: xpack.security.http.ssl.enabled
               value: "false"
-            - name: cluster.name
-              value: "elasticsearch"
+            - name: xpack.security.transport.ssl.enabled
+              value: "false"
+            
             - name: ES_JAVA_OPTS
-              value: "-Xms1g -Xmx1g"
+              value: "-Xms512m -Xmx512m"
+            
+            - name: indices.memory.index_buffer_size
+              value: "10%"
+            - name: indices.queries.cache.size
+              value: "5%"
+            - name: indices.fielddata.cache.size
+              value: "5%"
+            
+            - name: xpack.ml.enabled
+              value: "false"
+            - name: xpack.graph.enabled
+              value: "false"
+            - name: xpack.watcher.enabled
+              value: "false"
+            - name: xpack.monitoring.collection.enabled
+              value: "false"
+            
+            - name: bootstrap.memory_lock
+              value: "false"
+            
+            - name: network.host
+              value: "0.0.0.0"
+            
+          resources:
+            limits:
+              cpu: "1000m"
+              memory: "1Gi"
+            requests:
+              cpu: "500m"
+              memory: "768Mi"
+              
+          livenessProbe:
+            httpGet:
+              path: /_cluster/health
+              port: 9200
+              scheme: HTTP
+              httpHeaders:
+                - name: Authorization
+                  value: Basic ZWxhc3RpYzpwYXNzd09yZA==
+            initialDelaySeconds: 120
+            periodSeconds: 30
+            timeoutSeconds: 10
+            failureThreshold: 5
+            
+          readinessProbe:
+            httpGet:
+              path: /_cluster/health?wait_for_status=yellow&timeout=30s
+              port: 9200
+              scheme: HTTP
+              httpHeaders:
+                - name: Authorization
+                  value: Basic ZWxhc3RpYzpwYXNzd09yZA==
+            initialDelaySeconds: 60
+            periodSeconds: 20
+            timeoutSeconds: 10
+            successThreshold: 1
+            failureThreshold: 3
+            
           volumeMounts:
             - name: es-data
               mountPath: /usr/share/elasticsearch/data
+            - name: es-config
+              mountPath: /usr/share/elasticsearch/config
+            - name: es-logs
+              mountPath: /usr/share/elasticsearch/logs
+              
       volumes:
-        - name: es-data
-          persistentVolumeClaim:
-            claimName: es-pvc
+        - name: es-config
+          emptyDir: {}
+        - name: es-logs
+          emptyDir: {}
+          
+  volumeClaimTemplates:
+    - metadata:
+        name: es-data
+      spec:
+        accessModes: ["ReadWriteOnce"]
+        storageClassName: local-path
+        resources:
+          requests:
+            storage: 5Gi
+            
 ---
 apiVersion: v1
 kind: Service
 metadata:
   name: elasticsearch
+  namespace: default
 spec:
   type: ClusterIP
   selector:
@@ -78,3 +186,4 @@ spec:
     - name: transport
       port: 9300
       targetPort: 9300
+  sessionAffinity: None
