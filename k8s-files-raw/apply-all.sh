@@ -10,8 +10,8 @@ kubectl apply -f command-service.yaml
 kubectl apply -f app-client.yaml
 kubectl apply -f ingress.yaml
 kubectl apply -f zipkin.yaml
-kubectl apply -f setup.yaml
 kubectl apply -f elasticsearch.yaml
+kubectl apply -f setup.yaml
 kubectl apply -f kibana.yaml
 kubectl apply -f logstash.yaml
 kubectl apply -f prometheus.yaml
