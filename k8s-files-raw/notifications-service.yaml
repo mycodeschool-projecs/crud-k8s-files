@@ -15,7 +15,7 @@ spec:
     spec:
       containers:
         - name: notifications-service
-          image: mycodeschool/crud-notification-api:23.06.2025.19.23.52-dev
+          image: mycodeschool/crud-notification-api:25.06.2025.16.53.41-dev
           env:
             - name: SPRING_PROFILES_ACTIVE
               value: "kubernetes"
