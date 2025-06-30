@@ -37,7 +37,7 @@ spec:
                     user => "elastic"
                     password => "${ELASTIC_PASSWORD}"
                     ssl => false
-                    index => "kube-logs"
+                    index => "crud-logs.log"
                   }
                 }
 ---
