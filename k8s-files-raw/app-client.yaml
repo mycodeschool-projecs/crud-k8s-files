@@ -16,7 +16,7 @@ spec:
     spec:
       containers:
         - name: react-container
-          image: mycodeschool/crud-client:07.08.2025.07.26.20-dev
+          image: mycodeschool/crud-client:07.08.2025.07.44.57-dev
           ports:
             - containerPort: 3000
           volumeMounts:
