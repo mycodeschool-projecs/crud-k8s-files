@@ -9,7 +9,8 @@ data:
   DB_USER: "testuser"
   config.json: |
     {
-        "BASE_URL": "http://localhost"
+        "BASE_URL": "http://localhost",
+        "KEYCLOAK_URL": "http://localhost:8080"
     }
   prometheus.yml: |
     global:
@@ -30,3 +31,65 @@ data:
           url: http://prometheus:9090
           access: proxy
           isDefault: true
+  realm-export.json: |
+    {
+      "realm": "kube-land",
+      "enabled": true,
+      "sslRequired": "external",
+      "registrationAllowed": true,
+      "loginWithEmailAllowed": true,
+      "duplicateEmailsAllowed": false,
+      "resetPasswordAllowed": true,
+      "editUsernameAllowed": false,
+      "bruteForceProtected": true,
+      "permanentLockout": false,
+      "maxFailureWaitSeconds": 900,
+      "minimumQuickLoginWaitSeconds": 60,
+      "waitIncrementSeconds": 60,
+      "quickLoginCheckMilliSeconds": 1000,
+      "maxDeltaTimeSeconds": 43200,
+      "failureFactor": 30,
+      "defaultRoles": ["user"],
+      "requiredCredentials": ["password"],
+      "passwordPolicy": "hashIterations(27500) and length(8) and digits(1) and upperCase(1) and specialChars(1)",
+      "clients": [
+        {
+          "clientId": "kube-land-backend",
+          "enabled": true,
+          "clientAuthenticatorType": "client-secret",
+          "secret": "your-client-secret-here",
+          "serviceAccountsEnabled": true,
+          "authorizationServicesEnabled": true,
+          "redirectUris": [
+            "http://localhost:8081/*",
+            "http://localhost:8082/*",
+            "http://localhost:8083/*"
+          ],
+          "webOrigins": ["*"],
+          "protocol": "openid-connect"
+        },
+        {
+          "clientId": "kube-land-frontend",
+          "enabled": true,
+          "publicClient": true,
+          "redirectUris": [
+            "http://localhost:3000/*",
+            "http://localhost:4200/*"
+          ],
+          "webOrigins": ["*"],
+          "protocol": "openid-connect"
+        }
+      ],
+      "roles": {
+        "realm": [
+          {
+            "name": "user",
+            "description": "Regular user role"
+          },
+          {
+            "name": "admin",
+            "description": "Administrator role"
+          }
+        ]
+      }
+    }
