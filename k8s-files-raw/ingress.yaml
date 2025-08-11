@@ -40,13 +40,13 @@ spec:
                 name:  react-app
                 port:
                   number: 3000
-          - path: /kibana
-            pathType: Prefix
-            backend:
-              service:
-                name: kibana
-                port:
-                  number: 5601
+          # - path: /kibana
+          #   pathType: Prefix
+          #   backend:
+          #     service:
+          #       name: kibana
+          #       port:
+          #         number: 5601
           - path: /zipkin
             pathType: Prefix
             backend:
@@ -61,10 +61,10 @@ spec:
                 name: grafana
                 port:
                   number: 3000
-          - path: /rabbitmq
-            pathType: Prefix
-            backend:
-              service:
-                name: rabbitmq
-                port:
-                  number: 15672
+          # - path: /rabbitmq
+          #   pathType: Prefix
+          #   backend:
+          #     service:
+          #       name: rabbitmq
+          #       port:
+          #         number: 15672
