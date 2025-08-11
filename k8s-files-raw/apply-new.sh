@@ -11,7 +11,12 @@ kubectl apply -f notifications-service.yaml
 kubectl apply -f logstash.yaml
 kubectl apply -f rabbitMQ.yaml
 kubectl apply -f app-client.yaml
+
 kubectl apply -f ingress.yaml
+kubectl apply -f ingress-kibana.yaml
+kubectl apply -f ingress-rabbitmq.yaml
+kubectl apply -f ingress-keycloak.yaml
+kubectl apply -f keycloak.yaml
 kubectl apply -f zipkin.yaml
 
 kubectl apply -f elasticsearch.yaml
@@ -44,6 +49,7 @@ done
 echo "✅ Elasticsearch este UP și răspunde."
 
 kubectl apply -f setup.yaml
+
 kubectl apply -f kibana.yaml
 kubectl apply -f prometheus.yaml
 kubectl apply -f grafana.yaml
