@@ -39,11 +39,11 @@ spec:
             - name: KC_DB
               value: mysql
             - name: KC_DB_URL
-              value: jdbc:mysql://mysql-service:3306/keycloak
+              value: jdbc:mysql://mysql-service:3306/testdb
             - name: KC_DB_USERNAME
-              value: root
+              value: testuser
             - name: KC_DB_PASSWORD
-              value: root
+              value: testpass
 
             # Opțiuni Keycloak
             - name: KC_HTTP_ENABLED
@@ -53,7 +53,7 @@ spec:
             - name: KC_HOSTNAME_STRICT_HTTPS
               value: "false"
             - name: KC_PROXY
-              value: edge
+              value: passthrough
             - name: KC_HEALTH_ENABLED
               value: "true"
             - name: KC_METRICS_ENABLED
@@ -64,6 +64,8 @@ spec:
               value: INFO
             - name: KC_LOG_CONSOLE_OUTPUT
               value: json
+            - name: KC_HOSTNAME
+              value: keycloak.local
 
           volumeMounts:
             - name: keycloak-data
