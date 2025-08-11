@@ -23,6 +23,7 @@ spec:
           ports:
             - containerPort: 8080
           env:
+            # Admin user/pass din secret
             - name: KEYCLOAK_ADMIN
               valueFrom:
                 secretKeyRef:
@@ -34,17 +35,17 @@ spec:
                   name: keycloak-secret
                   key: adminPassword
 
-            # Database configuration (hardcoded here, but can be secret as well)
+            # Config baza de date
             - name: KC_DB
               value: mysql
             - name: KC_DB_URL
-              value: jdbc:mysql://mysql:3306/keycloak
+              value: jdbc:mysql://mysql-service:3306/keycloak
             - name: KC_DB_USERNAME
               value: root
             - name: KC_DB_PASSWORD
               value: root
 
-            # Keycloak options
+            # Opțiuni Keycloak
             - name: KC_HTTP_ENABLED
               value: "true"
             - name: KC_HOSTNAME_STRICT
@@ -64,13 +65,6 @@ spec:
             - name: KC_LOG_CONSOLE_OUTPUT
               value: json
 
-            # 🔐 Inject client secret if needed
-            - name: CLIENT_SECRET
-              valueFrom:
-                secretKeyRef:
-                  name: keycloak-client-secret
-                  key: clientSecret
-
           volumeMounts:
             - name: keycloak-data
               mountPath: /opt/keycloak/data
@@ -82,14 +76,12 @@ spec:
         - name: keycloak-data
           persistentVolumeClaim:
             claimName: keycloak-pvc
-
         - name: realm-export
           configMap:
             name: app-config
             items:
               - key: realm-export.json
                 path: realm-export.json
-
 
 ---
 apiVersion: v1
