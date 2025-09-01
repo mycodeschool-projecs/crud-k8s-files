@@ -12,6 +12,12 @@ data:
         "BASE_URL": "http://localhost",
         "KEYCLOAK_URL": "http://localhost:8080"
     }
+  init-db.sql: |
+    CREATE DATABASE IF NOT EXISTS keycloak;
+    GRANT ALL PRIVILEGES ON keycloak.* TO 'root'@'%';
+    CREATE DATABASE IF NOT EXISTS sonar;
+    GRANT ALL PRIVILEGES ON sonar.* TO 'root'@'%';
+    FLUSH PRIVILEGES;
   prometheus.yml: |
     global:
       scrape_interval: 15s

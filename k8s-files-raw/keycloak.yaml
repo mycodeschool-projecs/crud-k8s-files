@@ -16,13 +16,14 @@ spec:
     spec:
       containers:
         - name: keycloak
-          image: quay.io/keycloak/keycloak:24.0.4
+          image: quay.io/keycloak/keycloak:26.3.2
           args:
             - "start"
             - "--import-realm"
           ports:
             - containerPort: 8080
           env:
+            # Admin user/pass din secret
             - name: KEYCLOAK_ADMIN
               valueFrom:
                 secretKeyRef:
@@ -34,17 +35,17 @@ spec:
                   name: keycloak-secret
                   key: adminPassword
 
-            # Database configuration (hardcoded here, but can be secret as well)
+            # Config baza de date
             - name: KC_DB
               value: mysql
             - name: KC_DB_URL
-              value: jdbc:mysql://mysql:3306/keycloak
+              value: jdbc:mysql://mysql-service:3306/testdb
             - name: KC_DB_USERNAME
-              value: root
+              value: testuser
             - name: KC_DB_PASSWORD
-              value: root
+              value: testpass
 
-            # Keycloak options
+            # Keycloak options - FIXED
             - name: KC_HTTP_ENABLED
               value: "true"
             - name: KC_HOSTNAME_STRICT
@@ -52,7 +53,9 @@ spec:
             - name: KC_HOSTNAME_STRICT_HTTPS
               value: "false"
             - name: KC_PROXY
-              value: edge
+              value: "edge"  # CHANGED from passthrough to edge
+            - name: KC_PROXY_ADDRESS_FORWARDING
+              value: "true"  # ADDED for proper proxy handling
             - name: KC_HEALTH_ENABLED
               value: "true"
             - name: KC_METRICS_ENABLED
@@ -63,13 +66,10 @@ spec:
               value: INFO
             - name: KC_LOG_CONSOLE_OUTPUT
               value: json
-
-            # 🔐 Inject client secret if needed
-            - name: CLIENT_SECRET
-              valueFrom:
-                secretKeyRef:
-                  name: keycloak-client-secret
-                  key: clientSecret
+            - name: KC_HOSTNAME
+              value: keycloak.local
+            - name: KC_HTTP_PORT
+              value: "8080"
 
           volumeMounts:
             - name: keycloak-data
@@ -82,14 +82,13 @@ spec:
         - name: keycloak-data
           persistentVolumeClaim:
             claimName: keycloak-pvc
-
         - name: realm-export
           configMap:
-            name: app-config
+            name: app-config-keycloak
+            optional: true  # Make optional if ConfigMap doesn't exist yet
             items:
               - key: realm-export.json
                 path: realm-export.json
-
 
 ---
 apiVersion: v1
@@ -110,3 +109,97 @@ spec:
       port: 9000
       targetPort: 9000
   type: ClusterIP
+
+---
+# Secret for admin credentials
+apiVersion: v1
+kind: Secret
+metadata:
+  name: keycloak-secret
+type: Opaque
+stringData:
+  adminUser: "admin"
+  adminPassword: "admin"  # CHANGE THIS in production!
+
+---
+# PersistentVolumeClaim for Keycloak data
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: keycloak-pvc
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 1Gi
+
+---
+# ConfigMap placeholder (if realm-export.json doesn't exist)
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: app-config-keycloak
+data:
+  realm-export.json: |
+    {
+      "realm": "kube-land",
+      "enabled": true,
+      "sslRequired": "external",
+      "registrationAllowed": true,
+      "loginWithEmailAllowed": true,
+      "duplicateEmailsAllowed": false,
+      "resetPasswordAllowed": true,
+      "editUsernameAllowed": false,
+      "bruteForceProtected": true,
+      "permanentLockout": false,
+      "maxFailureWaitSeconds": 900,
+      "minimumQuickLoginWaitSeconds": 60,
+      "waitIncrementSeconds": 60,
+      "quickLoginCheckMilliSeconds": 1000,
+      "maxDeltaTimeSeconds": 43200,
+      "failureFactor": 30,
+      "defaultRoles": ["user"],
+      "requiredCredentials": ["password"],
+      "passwordPolicy": "hashIterations(27500) and length(8) and digits(1) and upperCase(1) and specialChars(1)",
+      "clients": [
+        {
+          "clientId": "kube-land-backend",
+          "enabled": true,
+          "clientAuthenticatorType": "client-secret",
+          "secret": "your-client-secret-here",
+          "serviceAccountsEnabled": true,
+          "authorizationServicesEnabled": true,
+          "redirectUris": [
+            "http://localhost:8081/*",
+            "http://localhost:8082/*",
+            "http://localhost:8083/*"
+          ],
+          "webOrigins": ["*"],
+          "protocol": "openid-connect"
+        },
+        {
+          "clientId": "kube-land-frontend",
+          "enabled": true,
+          "publicClient": true,
+          "redirectUris": [
+            "http://localhost:3000/*",
+            "http://localhost:4200/*"
+          ],
+          "webOrigins": ["*"],
+          "protocol": "openid-connect"
+        }
+      ],
+      "roles": {
+        "realm": [
+          {
+            "name": "user",
+            "description": "Regular user role"
+          },
+          {
+            "name": "admin",
+            "description": "Administrator role"
+          }
+        ]
+      }
+    }
