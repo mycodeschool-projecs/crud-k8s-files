@@ -23,6 +23,9 @@ spec:
             - name: app-config-volume
               mountPath: /app/build/config/config.json
               subPath: config.json
+            - name: env-config-volume
+              mountPath: /app/build/env-config.js
+              subPath: env-config.js
       volumes:
         - name: app-config-volume
           configMap:
@@ -30,6 +33,23 @@ spec:
             items:
               - key: config.json
                 path: config.json
+        - name: env-config-volume
+          secret:
+            secretName: react-env-secret
+            items:
+              - key: env-config.js
+                path: env-config.js
+      #     volumeMounts:
+      #       - name: app-config-volume
+      #         mountPath: /app/build/config/config.json
+      #         subPath: config.json
+      # volumes:
+      #   - name: app-config-volume
+      #     configMap:
+      #       name: app-config
+      #       items:
+      #         - key: config.json
+      #           path: config.json
 
 ---
 apiVersion: v1
