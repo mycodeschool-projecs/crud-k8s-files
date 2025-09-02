@@ -39,11 +39,11 @@ spec:
             - name: KC_DB
               value: mysql
             - name: KC_DB_URL
-              value: jdbc:mysql://mysql-service:3306/testdb
+              value: jdbc:mysql://mysql-service:3306/keycloak
             - name: KC_DB_USERNAME
-              value: testuser
+              value: keycloak
             - name: KC_DB_PASSWORD
-              value: testpass
+              value: keycloakpass
 
             # Keycloak options - FIXED
             - name: KC_HTTP_ENABLED
@@ -84,7 +84,7 @@ spec:
             claimName: keycloak-pvc
         - name: realm-export
           configMap:
-            name: app-config-keycloak
+            name: app-config
             optional: true  # Make optional if ConfigMap doesn't exist yet
             items:
               - key: realm-export.json
@@ -109,97 +109,97 @@ spec:
       port: 9000
       targetPort: 9000
   type: ClusterIP
+# 
+# ---
+# # Secret for admin credentials
+# apiVersion: v1
+# kind: Secret
+# metadata:
+#   name: keycloak-secret
+# type: Opaque
+# stringData:
+#   adminUser: "admin"
+#   adminPassword: "admin"  # CHANGE THIS in production!
 
----
-# Secret for admin credentials
-apiVersion: v1
-kind: Secret
-metadata:
-  name: keycloak-secret
-type: Opaque
-stringData:
-  adminUser: "admin"
-  adminPassword: "admin"  # CHANGE THIS in production!
-
----
-# PersistentVolumeClaim for Keycloak data
-apiVersion: v1
-kind: PersistentVolumeClaim
-metadata:
-  name: keycloak-pvc
-spec:
-  accessModes:
-    - ReadWriteOnce
-  resources:
-    requests:
-      storage: 1Gi
-
----
-# ConfigMap placeholder (if realm-export.json doesn't exist)
-apiVersion: v1
-kind: ConfigMap
-metadata:
-  name: app-config-keycloak
-data:
-  realm-export.json: |
-    {
-      "realm": "kube-land",
-      "enabled": true,
-      "sslRequired": "external",
-      "registrationAllowed": true,
-      "loginWithEmailAllowed": true,
-      "duplicateEmailsAllowed": false,
-      "resetPasswordAllowed": true,
-      "editUsernameAllowed": false,
-      "bruteForceProtected": true,
-      "permanentLockout": false,
-      "maxFailureWaitSeconds": 900,
-      "minimumQuickLoginWaitSeconds": 60,
-      "waitIncrementSeconds": 60,
-      "quickLoginCheckMilliSeconds": 1000,
-      "maxDeltaTimeSeconds": 43200,
-      "failureFactor": 30,
-      "defaultRoles": ["user"],
-      "requiredCredentials": ["password"],
-      "passwordPolicy": "hashIterations(27500) and length(8) and digits(1) and upperCase(1) and specialChars(1)",
-      "clients": [
-        {
-          "clientId": "kube-land-backend",
-          "enabled": true,
-          "clientAuthenticatorType": "client-secret",
-          "secret": "your-client-secret-here",
-          "serviceAccountsEnabled": true,
-          "authorizationServicesEnabled": true,
-          "redirectUris": [
-            "http://localhost:8081/*",
-            "http://localhost:8082/*",
-            "http://localhost:8083/*"
-          ],
-          "webOrigins": ["*"],
-          "protocol": "openid-connect"
-        },
-        {
-          "clientId": "kube-land-frontend",
-          "enabled": true,
-          "publicClient": true,
-          "redirectUris": [
-            "http://localhost:3000/*",
-            "http://localhost:4200/*"
-          ],
-          "webOrigins": ["*"],
-          "protocol": "openid-connect"
-        }
-      ],
-      "roles": {
-        "realm": [
-          {
-            "name": "user",
-            "description": "Regular user role"
-          },
-          {
-            "name": "admin",
-            "description": "Administrator role"
-          }
-        ]
-      }
-    }
+# ---
+# # PersistentVolumeClaim for Keycloak data
+# apiVersion: v1
+# kind: PersistentVolumeClaim
+# metadata:
+#   name: keycloak-pvc
+# spec:
+#   accessModes:
+#     - ReadWriteOnce
+#   resources:
+#     requests:
+#       storage: 1Gi
+# 
+# ---
+# # ConfigMap placeholder (if realm-export.json doesn't exist)
+# apiVersion: v1
+# kind: ConfigMap
+# metadata:
+#   name: app-config-keycloak
+# data:
+#   realm-export.json: |
+#     {
+#       "realm": "kube-land",
+#       "enabled": true,
+#       "sslRequired": "external",
+#       "registrationAllowed": true,
+#       "loginWithEmailAllowed": true,
+#       "duplicateEmailsAllowed": false,
+#       "resetPasswordAllowed": true,
+#       "editUsernameAllowed": false,
+#       "bruteForceProtected": true,
+#       "permanentLockout": false,
+#       "maxFailureWaitSeconds": 900,
+#       "minimumQuickLoginWaitSeconds": 60,
+#       "waitIncrementSeconds": 60,
+#       "quickLoginCheckMilliSeconds": 1000,
+#       "maxDeltaTimeSeconds": 43200,
+#       "failureFactor": 30,
+#       "defaultRoles": ["user"],
+#       "requiredCredentials": ["password"],
+#       "passwordPolicy": "hashIterations(27500) and length(8) and digits(1) and upperCase(1) and specialChars(1)",
+#       "clients": [
+#         {
+#           "clientId": "kube-land-backend",
+#           "enabled": true,
+#           "clientAuthenticatorType": "client-secret",
+#           "secret": "your-client-secret-here",
+#           "serviceAccountsEnabled": true,
+#           "authorizationServicesEnabled": true,
+#           "redirectUris": [
+#             "http://localhost:8081/*",
+#             "http://localhost:8082/*",
+#             "http://localhost:8083/*"
+#           ],
+#           "webOrigins": ["*"],
+#           "protocol": "openid-connect"
+#         },
+#         {
+#           "clientId": "kube-land-frontend",
+#           "enabled": true,
+#           "publicClient": true,
+#           "redirectUris": [
+#             "http://localhost:3000/*",
+#             "http://localhost:4200/*"
+#           ],
+#           "webOrigins": ["*"],
+#           "protocol": "openid-connect"
+#         }
+#       ],
+#       "roles": {
+#         "realm": [
+#           {
+#             "name": "user",
+#             "description": "Regular user role"
+#           },
+#           {
+#             "name": "admin",
+#             "description": "Administrator role"
+#           }
+#         ]
+#       }
+#     }
