@@ -1,0 +1,17 @@
+# MySQL Persistent Volume Claim
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: {{ include "crud-proj.fullname" . }}-mysql-pvc
+  namespace: {{ .Values.global.namespace }}
+  labels:
+    {{- include "crud-proj.mysql.labels" . | nindent 4 }}
+spec:
+  {{- if .Values.global.storageClass }}
+  storageClassName: {{ .Values.global.storageClass }}
+  {{- end }}
+  accessModes:
+    - {{ .Values.mysql.storage.accessMode }}
+  resources:
+    requests:
+      storage: {{ .Values.mysql.storage.size }}

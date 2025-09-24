@@ -1,0 +1,40 @@
+global:
+  namespace: default              # Target Kubernetes namespace
+  storageClass: local-path       # Storage class for persistent volumes
+  imageRegistry: ""              # Global image registry prefix (optional)
+  imagePullSecrets: []           # Image pull secrets if needed
+
+# MySQL Configuration  
+mysql:
+  enabled: true                   # Enable/disable MySQL deployment
+  image:
+    repository: mysql
+    tag: "8.0"
+    pullPolicy: IfNotPresent
+
+  # Database configuration
+  database: testdb               # Database name
+  user: testuser                # Database user
+  password: testpass            # Database password (will be base64 encoded)
+  rootPassword: testpass        # Root password (will be base64 encoded)
+
+  # Storage configuration
+  storage:
+    size: 5Gi                   # Persistent volume size
+    accessMode: ReadWriteOnce   # Access mode for PVC
+
+  # Resource limits and requests
+  resources:
+    requests:
+      memory: "512Mi"
+      cpu: "250m"
+    limits:
+      memory: "1Gi"
+      cpu: "500m"
+
+images:
+  # Command service image
+  commandService:
+    repository: mycodeschool/crud-command-api
+    tag: "25.06.2025.17.35.56-prod"
+    pullPolicy: IfNotPresent

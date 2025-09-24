@@ -1,0 +1,17 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ include "crud-proj.fullname" . }}-app-config
+  namespace:  {{ .Values.global.namespace }}
+data:
+  DB_HOST: {{ include "crud-proj.fullname" . }}-mysql
+  DB_NAME: "testdb"
+  DB_USER: "testuser"
+  keycloak-db.sql: |
+    CREATE DATABASE IF NOT EXISTS keycloak;
+    CREATE USER IF NOT EXISTS 'keycloak'@'%' IDENTIFIED BY 'keycloakpass';
+    GRANT ALL PRIVILEGES ON keycloak.* TO 'keycloak'@'%';
+    FLUSH PRIVILEGES;
+    CREATE USER IF NOT EXISTS 'keycloak'@'localhost' IDENTIFIED WITH mysql_native_password BY 'keycloakpass';
+    GRANT ALL PRIVILEGES ON keycloak.* TO 'keycloak'@'localhost';
+    FLUSH PRIVILEGES;    

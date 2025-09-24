@@ -1,0 +1,53 @@
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: {{ include "crud-proj.fullname" . }}-mysql
+  namespace: default
+spec:
+  serviceName: {{ include "crud-proj.fullname" . }}-mysql-service
+  replicas: 1
+  selector:
+    matchLabels:
+      app: {{ include "crud-proj.fullname" . }}-mysql
+  template:
+    metadata:
+      labels:
+        app: {{ include "crud-proj.fullname" . }}-mysql
+    spec:
+      containers:
+        - name: {{ include "crud-proj.fullname" . }}-mysql
+          image: mysql:8.0
+          env:
+            - name: MYSQL_ROOT_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "crud-proj.fullname" . }}-db-credentials
+                  key: mysql-root-password
+            - name: MYSQL_DATABASE
+              value: {{ .Values.mysql.database | quote }}
+            - name: MYSQL_USER
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "crud-proj.fullname" . }}-db-credentials
+                  key: mysql-username
+            - name: MYSQL_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "crud-proj.fullname" . }}-db-credentials
+                  key: mysql-password
+          ports:
+            - containerPort: 3306
+              name: {{ include "crud-proj.fullname" . }}-mysql
+          volumeMounts:
+            - name: mysql-storage
+              mountPath: /var/lib/mysql
+            - name: init-script
+              mountPath: /docker-entrypoint-initdb.d/keycloak-db.sql
+              subPath: keycloak-db.sql
+      volumes:
+        - name: init-script
+          configMap:
+            name: {{ include "crud-proj.fullname" . }}-app-config
+        - name: mysql-storage
+          persistentVolumeClaim:
+            claimName: {{ include "crud-proj.fullname" . }}-mysql-pvc
