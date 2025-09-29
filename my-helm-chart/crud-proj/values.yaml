@@ -32,9 +32,45 @@ mysql:
       memory: "1Gi"
       cpu: "500m"
 
+# Elasticsearch Configuration  
+elasticsearch:
+  storage:
+    size: 5Gi
+    accessMode: ReadWriteOnce
+  password: passwOrd # password (will be base64 encoded)
+
+
 images:
   # Command service image
   commandService:
     repository: mycodeschool/crud-command-api
-    tag: "25.06.2025.17.35.56-prod"
+    tag: "24.09.2025.15.13.44-dev"
+    pullPolicy: IfNotPresent
+
+
+  # Command service image
+  notificationsService:
+    repository: mycodeschool/crud-notification-api
+    tag: "29.09.2025.13.22.48-dev"
+    pullPolicy: IfNotPresent
+
+
+  authService:
+    repository: mycodeschool/crud-auth-api
+    tag: "29.09.2025.13.42.23-prod"
+    pullPolicy: IfNotPresent
+
+
+  # Elastic image
+  elasticsearch:
+    repository: docker.elastic.co/elasticsearch/elasticsearch
+    tag: "8.12.1"
+    pullPolicy: IfNotPresent
+
+
+  
+  # Logstash image
+  logstash:
+    repository: docker.elastic.co/logstash/logstash
+    tag: "8.12.1"
     pullPolicy: IfNotPresent

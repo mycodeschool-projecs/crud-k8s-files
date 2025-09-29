@@ -15,3 +15,18 @@ spec:
   resources:
     requests:
       storage: {{ .Values.mysql.storage.size }}
+
+---
+# ElasticSearch Persistent Volume Claim
+
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: {{ include "crud-proj.fullname" . }}-es-pvc
+spec:
+  storageClassName: {{ .Values.global.storageClass }}
+  accessModes:
+    - {{ .Values.elasticsearch.storage.accessMode }}
+  resources:
+    requests:
+      storage: {{ .Values.elasticsearch.storage.size }}

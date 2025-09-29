@@ -1,0 +1,63 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: kibana-setup
+spec:
+  backoffLimit: 5      # Retry up to 5 times if it fails
+  activeDeadlineSeconds: 600  # Timeout after 10 minutes
+  template:
+    spec:
+      restartPolicy: Never
+      containers:
+        - name: elk-setup
+          image: docker.elastic.co/elasticsearch/elasticsearch:8.12.1
+          imagePullPolicy: IfNotPresent
+          env:
+            - name: ELASTIC_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "crud-proj.fullname" . }}-elk-secrets
+                  key: elastic_password
+            - name: KIBANA_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "crud-proj.fullname" . }}-elk-secrets
+                  key: kibana_password
+
+          # ⬇️ switch from bash to sh
+          command: ["sh", "-c"]
+          args:
+            - |
+              echo "Waiting for Elasticsearch availability";
+              max_retries=60
+              retry_count=0
+              until curl -s http://elasticsearch:9200 | grep -q "missing authentication credentials" || [ $retry_count -ge $max_retries ]; do
+                retry_count=$((retry_count+1))
+                echo "Elasticsearch not ready, sleeping 10s... (Attempt $retry_count/$max_retries)"
+                sleep 20
+              done
+
+              if [ $retry_count -ge $max_retries ]; then
+                echo "Timed out waiting for Elasticsearch to become available"
+                exit 1
+              fi
+
+              echo "Setting kibana_system password";
+              max_retries=20
+              retry_count=0
+              until curl -s -X POST -u "elastic:${ELASTIC_PASSWORD}" \
+                    -H "Content-Type: application/json" \
+                    -d "{\"password\":\"${KIBANA_PASSWORD}\"}" \
+                    http://elasticsearch:9200/_security/user/kibana_system/_password \
+                    | grep -q "^{}" || [ $retry_count -ge $max_retries ]; do
+                retry_count=$((retry_count+1))
+                echo "Retrying in 10s... (Attempt $retry_count/$max_retries)"
+                sleep 20
+              done
+
+              if [ $retry_count -ge $max_retries ]; then
+                echo "Failed to set kibana_system password after multiple attempts"
+                exit 1
+              fi
+
+              echo "All done! Kibana should now authenticate with the 'kibana_system' user."

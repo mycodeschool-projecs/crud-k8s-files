@@ -1,0 +1,57 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: logstash
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: logstash
+  template:
+    metadata:
+      labels:
+        app: logstash
+    spec:
+      containers:
+        - name: logstash
+          image: {{ include "crud-proj.image" (dict "image" .Values.images.logstash "global" .Values.global) }}
+          imagePullPolicy: {{ .Values.images.commandService.pullPolicy }}
+          ports:
+            - containerPort: 3100
+          env:
+            - name: ELASTIC_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "crud-proj.fullname" . }}-elk-secrets
+                  key: elastic_password
+            - name: CONFIG_STRING
+              value: |
+                input {
+                  tcp {
+                    port => 3100
+                    codec => json_lines
+                  }
+                }
+                output {
+                  elasticsearch {
+                    hosts => ["http://elasticsearch:9200"]
+                    user => "elastic"
+                    password => "${ELASTIC_PASSWORD}"
+                    ssl => false
+                    index => "crud-logs.log"
+                  }
+                }
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: logstash
+spec:
+  type: ClusterIP
+  selector:
+    app: logstash
+  ports:
+    - name: tcp
+      protocol: TCP
+      port: 3100
+      targetPort: 3100
