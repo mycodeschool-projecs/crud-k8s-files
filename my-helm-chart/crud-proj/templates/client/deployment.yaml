@@ -1,0 +1,55 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: react-app
+  labels:
+    app: react-app
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: react-app
+  template:
+    metadata:
+      labels:
+        app: react-app
+    spec:
+      containers:
+        - name: react-container
+          image: {{ include "crud-proj.image" (dict "image" .Values.images.clientService "global" .Values.global) }}
+          imagePullPolicy: {{ .Values.images.clientService.pullPolicy }}
+          ports:
+            - containerPort: 3000
+          volumeMounts:
+            - name: app-config-volume
+              mountPath: /app/build/config/config.json
+              subPath: config.json
+            - name: env-config-volume
+              mountPath: /app/build/env-config.js
+              subPath: env-config.js
+      volumes:
+        - name: app-config-volume
+          configMap:
+            name: {{ include "crud-proj.fullname" . }}-app-config
+            items:
+              - key: config.json
+                path: config.json
+        - name: env-config-volume
+          secret:
+            secretName: react-env-secret
+            items:
+              - key: env-config.js
+                path: env-config.js
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: react-app
+  namespace: default
+spec:
+  type: ClusterIP
+  ports:
+    - port: 3000
+      targetPort: 3000
+  selector:
+    app: react-app

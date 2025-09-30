@@ -29,7 +29,8 @@ spec:
                   key: elastic_password
       containers:
         - name: elasticsearch
-          image: docker.elastic.co/elasticsearch/elasticsearch:8.12.1
+          image: {{ include "crud-proj.image" (dict "image" .Values.images.elasticsearch "global" .Values.global) }}
+          imagePullPolicy: {{ .Values.images.commandService.pullPolicy }}
           ports:
             - name: http
               containerPort: 9200

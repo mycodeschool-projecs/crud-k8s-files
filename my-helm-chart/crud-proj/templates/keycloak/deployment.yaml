@@ -1,0 +1,112 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: keycloak
+  labels:
+    app: keycloak
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: keycloak
+  template:
+    metadata:
+      labels:
+        app: keycloak
+    spec:
+      containers:
+        - name: keycloak
+          image: {{ include "crud-proj.image" (dict "image" .Values.images.keycloak "global" .Values.global) }}
+          imagePullPolicy: {{ .Values.images.keycloak.pullPolicy }}
+          args:
+            - "start"
+            - "--import-realm"
+          ports:
+            - containerPort: 8080
+          env:
+            # Admin user/pass din secret
+            - name: KEYCLOAK_ADMIN
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "crud-proj.fullname" . }}-keycloak-secret
+                  key: adminUser
+            - name: KEYCLOAK_ADMIN_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "crud-proj.fullname" . }}-keycloak-secret
+                  key: adminPassword
+
+            # Config baza de date
+            - name: KC_DB
+              value: mysql
+            - name: KC_DB_URL
+              value: {{ .Values.keycloak.dbURL }}
+            - name: KC_DB_USERNAME
+              value: keycloak
+            - name: KC_DB_PASSWORD
+              value: keycloakpass
+
+            # Keycloak options - FIXED
+            - name: KC_HTTP_ENABLED
+              value: "true"
+            - name: KC_HOSTNAME_STRICT
+              value: "false"
+            - name: KC_HOSTNAME_STRICT_HTTPS
+              value: "false"
+            - name: KC_PROXY
+              value: "edge"  # CHANGED from passthrough to edge
+            - name: KC_PROXY_ADDRESS_FORWARDING
+              value: "true"  # ADDED for proper proxy handling
+            - name: KC_HEALTH_ENABLED
+              value: "true"
+            - name: KC_METRICS_ENABLED
+              value: "true"
+            - name: KC_FEATURES
+              value: token-exchange,admin-fine-grained-authz
+            - name: KC_LOG_LEVEL
+              value: INFO
+            - name: KC_LOG_CONSOLE_OUTPUT
+              value: json
+            - name: KC_HOSTNAME
+              value: keycloak.local
+            - name: KC_HTTP_PORT
+              value: "8080"
+
+          volumeMounts:
+            - name: keycloak-data
+              mountPath: /opt/keycloak/data
+            - name: realm-export
+              mountPath: /opt/keycloak/data/import
+              readOnly: true
+
+      volumes:
+        - name: keycloak-data
+          persistentVolumeClaim:
+            claimName: keycloak-pvc
+        - name: realm-export
+          configMap:
+            name: {{ include "crud-proj.fullname" . }}-app-config
+            optional: true  # Make optional if ConfigMap doesn't exist yet
+            items:
+              - key: realm-export.json
+                path: realm-export.json
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: keycloak
+spec:
+  selector:
+    app: keycloak
+  ports:
+    - name: http
+      port: 8080
+      targetPort: 8080
+    - name: https
+      port: 8443
+      targetPort: 8443
+    - name: management
+      port: 9000
+      targetPort: 9000
+  type: ClusterIP

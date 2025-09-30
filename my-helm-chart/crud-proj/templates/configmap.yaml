@@ -15,3 +15,90 @@ data:
     CREATE USER IF NOT EXISTS 'keycloak'@'localhost' IDENTIFIED WITH mysql_native_password BY 'keycloakpass';
     GRANT ALL PRIVILEGES ON keycloak.* TO 'keycloak'@'localhost';
     FLUSH PRIVILEGES;    
+  config.json: |
+    {
+        "BASE_URL": "http://localhost",
+        "KEYCLOAK_URL": "http://keycloak.local",
+        "KEYCLOAK_CLIENT_SECRET": "oZTKDqmy20gnH1lWdpBHbbvRJ8gmCuXu"
+    }
+  prometheus.yml: |
+    global:
+      scrape_interval: 15s
+    scrape_configs:
+      - job_name: 'spring-boot'
+        scrape_interval: 5s
+        metrics_path: '/actuator/prometheus'
+        static_configs:
+          - targets:
+              - 'kube-land.default.svc.cluster.local:8082'
+              - 'kube-ms1.default.svc.cluster.local:8081'
+  grafana-datasources.yml: |
+      apiVersion: 1
+      datasources:
+        - name: Prometheus
+          type: prometheus
+          url: http://prometheus:9090
+          access: proxy
+          isDefault: true
+  realm-export.json: |
+    {
+      "realm": "kube-land",
+      "enabled": true,
+      "sslRequired": "external",
+      "registrationAllowed": true,
+      "loginWithEmailAllowed": true,
+      "duplicateEmailsAllowed": false,
+      "resetPasswordAllowed": true,
+      "editUsernameAllowed": false,
+      "bruteForceProtected": true,
+      "permanentLockout": false,
+      "maxFailureWaitSeconds": 900,
+      "minimumQuickLoginWaitSeconds": 60,
+      "waitIncrementSeconds": 60,
+      "quickLoginCheckMilliSeconds": 1000,
+      "maxDeltaTimeSeconds": 43200,
+      "failureFactor": 30,
+      "defaultRoles": ["user"],
+      "requiredCredentials": ["password"],
+      "passwordPolicy": "hashIterations(27500) and length(8) and digits(1) and upperCase(1) and specialChars(1)",
+      "clients": [
+        {
+          "clientId": "kube-land-backend",
+          "enabled": true,
+          "clientAuthenticatorType": "client-secret",
+          "secret": "your-client-secret-here",
+          "serviceAccountsEnabled": true,
+          "authorizationServicesEnabled": true,
+          "redirectUris": [
+            "http://localhost:8081/*",
+            "http://localhost:8082/*",
+            "http://localhost:8083/*"
+          ],
+          "webOrigins": ["*"],
+          "protocol": "openid-connect"
+        },
+        {
+          "clientId": "kube-land-frontend",
+          "enabled": true,
+          "publicClient": true,
+          "redirectUris": [
+            "http://localhost:3000/*",
+            "http://localhost:4200/*"
+          ],
+          "webOrigins": ["*"],
+          "protocol": "openid-connect"
+        }
+      ],
+      "roles": {
+        "realm": [
+          {
+            "name": "user",
+            "description": "Regular user role"
+          },
+          {
+            "name": "admin",
+            "description": "Administrator role"
+          }
+        ]
+      }
+    }

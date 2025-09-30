@@ -39,8 +39,23 @@ elasticsearch:
     accessMode: ReadWriteOnce
   password: passwOrd # password (will be base64 encoded)
 
+# Keycloak Configuration  
+keycloak:
+  dbURL: jdbc:mysql://mysql-service:3306/keycloak
+  storage:
+    size: 5Gi
+    accessMode: ReadWriteOnce
+  password: passwOrd # password (will be base64 encoded)
+
 
 images:
+
+  # Client service image
+  clientService:
+    repository: mycodeschool/crud-client
+    tag: "01.09.2025.17.29.17-prod"
+    pullPolicy: IfNotPresent
+
   # Command service image
   commandService:
     repository: mycodeschool/crud-command-api
@@ -51,7 +66,7 @@ images:
   # Command service image
   notificationsService:
     repository: mycodeschool/crud-notification-api
-    tag: "29.09.2025.13.22.48-dev"
+    tag: "29.09.2025.15.44.57-dev"
     pullPolicy: IfNotPresent
 
 
@@ -74,3 +89,15 @@ images:
     repository: docker.elastic.co/logstash/logstash
     tag: "8.12.1"
     pullPolicy: IfNotPresent
+
+  # Kibana image
+  kibana:
+    repository: docker.elastic.co/kibana/kibana
+    tag: "8.12.1"
+    pullPolicy: IfNotPresent
+
+  # Keycloak image
+  keycloak:
+    repository: quay.io/keycloak/keycloak
+    tag: "26.3.2"
+    pullPolicy: IfNotPresent    
