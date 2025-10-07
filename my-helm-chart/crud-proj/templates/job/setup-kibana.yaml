@@ -3,8 +3,8 @@ kind: Job
 metadata:
   name: kibana-setup
 spec:
-  backoffLimit: 5      # Retry up to 5 times if it fails
-  activeDeadlineSeconds: 600  # Timeout after 10 minutes
+  backoffLimit: 10      # Retry up to 5 times if it fails
+  activeDeadlineSeconds: 1200  # Timeout after 10 minutes
   template:
     spec:
       restartPolicy: Never

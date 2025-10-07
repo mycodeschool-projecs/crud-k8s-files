@@ -41,7 +41,7 @@ elasticsearch:
 
 # Keycloak Configuration  
 keycloak:
-  dbURL: jdbc:mysql://mysql-service:3306/keycloak
+  dbURL: jdbc:mysql://crud-proj-mysql-service:3306/keycloak
   storage:
     size: 5Gi
     accessMode: ReadWriteOnce
@@ -59,14 +59,14 @@ images:
   # Command service image
   commandService:
     repository: mycodeschool/crud-command-api
-    tag: "24.09.2025.15.13.44-dev"
+    tag: "06.10.2025.14.13.26-dev"
     pullPolicy: IfNotPresent
 
 
   # Command service image
   notificationsService:
     repository: mycodeschool/crud-notification-api
-    tag: "29.09.2025.15.44.57-dev"
+    tag: "06.10.2025.15.34.34-dev"
     pullPolicy: IfNotPresent
 
 
