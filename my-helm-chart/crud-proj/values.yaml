@@ -59,20 +59,20 @@ images:
   # Command service image
   commandService:
     repository: mycodeschool/crud-command-api
-    tag: "06.10.2025.14.13.26-dev"
+    tag: "07.10.2025.11.07.29-dev"
     pullPolicy: IfNotPresent
 
 
   # Command service image
   notificationsService:
     repository: mycodeschool/crud-notification-api
-    tag: "06.10.2025.15.34.34-dev"
+    tag: "06.10.2025.17.01.34-dev"
     pullPolicy: IfNotPresent
 
 
   authService:
     repository: mycodeschool/crud-auth-api
-    tag: "29.09.2025.13.42.23-prod"
+    tag: "07.10.2025.11.11.10-prod"
     pullPolicy: IfNotPresent
 
 

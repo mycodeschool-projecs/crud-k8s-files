@@ -19,7 +19,7 @@ data:
     {
         "BASE_URL": "http://localhost",
         "KEYCLOAK_URL": "http://keycloak.local",
-        "KEYCLOAK_CLIENT_SECRET": "KPgx3bweGa14ywF5pTQmF343s8d3u2IF"
+        "KEYCLOAK_CLIENT_SECRET": "1NI5ysgIBmlg13OQmEOaB8J9v6A9EMiI"
     }
   prometheus.yml: |
     global:
