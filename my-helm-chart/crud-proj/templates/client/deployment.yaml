@@ -1,18 +1,18 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: react-app
+  name: {{ .Values.client.name }}
   labels:
-    app: react-app
+    app: {{ .Values.client.name }}
 spec:
   replicas: 1
   selector:
     matchLabels:
-      app: react-app
+      app: {{ .Values.client.name }}
   template:
     metadata:
       labels:
-        app: react-app
+        app: {{ .Values.client.name }}
     spec:
       containers:
         - name: react-container
@@ -21,20 +21,20 @@ spec:
           ports:
             - containerPort: 3000
           volumeMounts:
-            - name: app-config-volume
-              mountPath: /app/build/config/config.json
-              subPath: config.json
-            - name: env-config-volume
-              mountPath: /app/build/env-config.js
-              subPath: env-config.js
+            - name: {{ .Values.client.volumeMount1.name }}
+              mountPath: {{ .Values.client.volumeMount1.mountPath }}
+              subPath: {{ .Values.client.volumeMount1.subPath }}
+            - name: {{ .Values.client.volumeMount2.name }}
+              mountPath: {{ .Values.client.volumeMount2.mountPath }}
+              subPath: {{ .Values.client.volumeMount2.subPath }}
       volumes:
-        - name: app-config-volume
+        - name: {{ .Values.client.volumeMount1.name }}
           configMap:
             name: {{ include "crud-proj.fullname" . }}-app-config
             items:
               - key: config.json
                 path: config.json
-        - name: env-config-volume
+        - name: {{ .Values.client.volumeMount2.name }}
           secret:
             secretName: react-env-secret
             items:

@@ -3,6 +3,17 @@ global:
   storageClass: local-path       # Storage class for persistent volumes
   imageRegistry: ""              # Global image registry prefix (optional)
   imagePullSecrets: []           # Image pull secrets if needed
+  
+# App Configs
+app:
+  configJson:
+    BASE_URL: "http://localhost"
+    KEYCLOAK_URL: "http://keycloak.local"
+    KEYCLOAK_CLIENT_SECRET: "lAJblbuX7rexTVGRqNf9AMPLpwbBXs35"
+
+
+
+
 
 # MySQL Configuration  
 mysql:
@@ -32,6 +43,22 @@ mysql:
       memory: "1Gi"
       cpu: "500m"
 
+# Auth Service Configuration
+auth:
+  appName: kube-land
+  springProfile: helm
+
+client:
+  name: react-app
+  volumeMount1:
+    name: app-config-volume
+    mountPath: /app/build/config/config.json
+    subPath: config.json
+  volumeMount2:
+    name: env-config-volume
+    mountPath: /app/build/env-config.js
+    subPath: env-config.js
+
 # Elasticsearch Configuration  
 elasticsearch:
   storage:
@@ -41,6 +68,19 @@ elasticsearch:
 
 # Keycloak Configuration  
 keycloak:
+  volumeMount1:
+    name: keycloak-data
+    mountPath: /opt/keycloak/data
+    persistentVolumeClaim: 
+      claimName: keycloak-pvc
+
+  volumeMount2:
+    name: realm-export
+    mountPath: /opt/keycloak/data/import
+    items:
+      key: realm-export.json
+      path: realm-export.json
+
   dbURL: jdbc:mysql://crud-proj-mysql-service:3306/keycloak
   storage:
     size: 5Gi
@@ -83,7 +123,6 @@ images:
     pullPolicy: IfNotPresent
 
 
-  
   # Logstash image
   logstash:
     repository: docker.elastic.co/logstash/logstash

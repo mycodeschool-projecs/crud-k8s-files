@@ -73,23 +73,24 @@ spec:
               value: "8080"
 
           volumeMounts:
-            - name: keycloak-data
-              mountPath: /opt/keycloak/data
-            - name: realm-export
-              mountPath: /opt/keycloak/data/import
+            - name: {{ .Values.keycloak.volumeMount1.name }}
+              mountPath: {{ .Values.keycloak.volumeMount1.mountPath }}
+            - name: {{ .Values.keycloak.volumeMount2.name }}
+              mountPath: {{ .Values.keycloak.volumeMount2.mountPath }}
               readOnly: true
 
       volumes:
-        - name: keycloak-data
+        - name: {{ .Values.keycloak.volumeMount1.name }}
           persistentVolumeClaim:
-            claimName: keycloak-pvc
-        - name: realm-export
+            claimName: {{ .Values.keycloak.volumeMount1.persistentVolumeClaim.claimName }}
+        - name: {{.Values.keycloak.volumeMount2.name}}
+
           configMap:
             name: {{ include "crud-proj.fullname" . }}-app-config
             optional: true  # Make optional if ConfigMap doesn't exist yet
             items:
-              - key: realm-export.json
-                path: realm-export.json
+              - key: {{ .Values.keycloak.volumeMount2.items.key }}
+                path: {{ .Values.keycloak.volumeMount2.items.path }}
 
 ---
 apiVersion: v1

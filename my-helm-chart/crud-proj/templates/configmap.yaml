@@ -16,11 +16,7 @@ data:
     GRANT ALL PRIVILEGES ON keycloak.* TO 'keycloak'@'localhost';
     FLUSH PRIVILEGES;    
   config.json: |
-    {
-        "BASE_URL": "http://localhost",
-        "KEYCLOAK_URL": "http://keycloak.local",
-        "KEYCLOAK_CLIENT_SECRET": "1NI5ysgIBmlg13OQmEOaB8J9v6A9EMiI"
-    }
+    {{ .Values.app.configJson | toJson | indent 4 }}
   prometheus.yml: |
     global:
       scrape_interval: 15s

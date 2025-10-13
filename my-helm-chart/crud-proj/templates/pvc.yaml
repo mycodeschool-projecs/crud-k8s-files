@@ -38,9 +38,9 @@ apiVersion: v1
 kind: PersistentVolumeClaim
 metadata:
   name: rabbitmq-pvc
-  namespace: default
+  namespace: {{ .Values.global.namespace }}
 spec:
-  storageClassName: local-path
+  storageClassName: {{ .Values.global.storageClass }}
   accessModes:
     - ReadWriteOnce
   resources:
@@ -53,9 +53,9 @@ apiVersion: v1
 kind: PersistentVolumeClaim
 metadata:
   name: keycloak-pvc
-  namespace: default
+  namespace: {{ .Values.global.namespace }}
 spec:
-  storageClassName: local-path
+  storageClassName: {{ .Values.global.storageClass }}
   accessModes:
     - ReadWriteOnce
   resources:
@@ -66,9 +66,9 @@ apiVersion: v1
 kind: PersistentVolumeClaim
 metadata:
   name: prometheus-pvc
-  namespace: default
+  namespace: {{ .Values.global.namespace }}
 spec:
-  storageClassName: local-path
+  storageClassName: {{ .Values.global.storageClass }}
   accessModes:
     - ReadWriteOnce
   resources:
@@ -80,9 +80,9 @@ apiVersion: v1
 kind: PersistentVolumeClaim
 metadata:
   name: grafana-pvc
-  namespace: default
+  namespace: {{ .Values.global.namespace }}
 spec:
-  storageClassName: local-path
+  storageClassName: {{ .Values.global.storageClass }}
   accessModes:
     - ReadWriteOnce
   resources:
