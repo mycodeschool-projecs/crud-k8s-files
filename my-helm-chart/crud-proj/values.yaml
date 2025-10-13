@@ -9,7 +9,7 @@ app:
   configJson:
     BASE_URL: "http://localhost"
     KEYCLOAK_URL: "http://keycloak.local"
-    KEYCLOAK_CLIENT_SECRET: "lAJblbuX7rexTVGRqNf9AMPLpwbBXs35"
+    KEYCLOAK_CLIENT_SECRET: "lOOH7MwPae7Wr5gGjCC4RYathwiktpWa"
 
 
 
